@@ -13,7 +13,7 @@ class Viewer(Frame):
         Frame.__init__(self, root)
         
         self.tree = ttk.Treeview(root, height = 20, columns = \
-                    ('Mutations', 'Rho', 'Age', \
+                    ('Mutations', 'Status', 'Rho', 'Age', \
                      'SE', 'Confidence interval'))
         self.tree.column("#0",minwidth = 350, width = 600)
         self.scroll = ttk.Scrollbar( root, orient=VERTICAL, \
@@ -31,18 +31,17 @@ class Viewer(Frame):
             if node.name in n.leaves:
                 self.tree.insert(node.parent,'end', \
                                  iid = node.name, text = node.name, \
-                            values = (len(node.mutations),'--','--','--','--'))
+                            values = (len(node.mutations), \
+                                      node.isSource(),'--','--','--','--'))
             elif node.name in n.nodes:
                 xnode = Tree(node.name,n.subtree(node.name))
-                op = False
-                for child in node.children:
-                    if child in n.nodes: op = True; break
-                self.tree.insert(str(node.parent),'end', iid = node.name, text = node.name, \
-                            values = (len(node.mutations), Rho(xnode)[1], Age(xnode)[1], \
-                            StDev(xnode)[1], ConfidenceInterval(xnode)), open = op)
+                self.tree.insert(str(node.parent),'end', iid = node.name, \
+                                 text = node.name, values = (len(node.mutations), \
+                                    node.isSource(), Rho(xnode)[1], Age(xnode)[1], \
+                            StDev(xnode)[1], ConfidenceInterval(xnode)), open = True)
 
-        self.label = ttk.Label(root, text= '%s nodes and %s leaves' % \
-                               (len(n.nodes), len(n.leaves)))
+        self.label = ttk.Label(root, text= '%s nodes and %s leaves in %s layers' % \
+                               (len(n.nodes), len(n.leaves), len(n.layers)))
 
         self.label.grid(row = 1, sticky=(W))
         self.scroll.grid(row = 0, column = 1, sticky=(N,S))
