@@ -4,6 +4,7 @@ import re
 from collections import defaultdict as ddict, OrderedDict as odict
 from copy import copy
 from node import Node
+from random import randint
 
 class Tree:
 
@@ -13,9 +14,10 @@ class Tree:
         self.tree = odict()
         self.nodes = []
         self.leaves = []
+        self.layers = odict()
         self.noLabel = 0
         self.buildTree(source)
-
+        self.updateTypes()
 
     def buildTree(self, source):
 
@@ -34,6 +36,9 @@ class Tree:
                         self.noLabel += 1
                         node.name = node.name + "_%s" % self.noLabel
                     self.tree[node.name] = node
+                    if not node.layer in self.layers:
+                        self.layers[node.layer] = [node.name]
+                    else: self.layers[node.layer].append(node.name)
                     if not "/>" in i:
                         layers[l] = node.name; l += 1
             f.close()
@@ -45,7 +50,10 @@ class Tree:
             node.children = [i.name for i in self.tree.values()
                              if i.parent == node.name]
             if len(node.children) > 0: self.nodes.append(node.name)
-            else: self.leaves.append(node.name)
+            else:
+                node.type = [0,0,1] if randint(0,1) == 1 else ([1,0,0] \
+                            if len(node.mutations) > 0 else [0,1,0])
+                self.leaves.append(node.name)
             node.siblings = [i.name for i in self.tree.values()
                              if i.parent == node.parent]
             node.siblings.remove(node.name)
@@ -61,8 +69,8 @@ class Tree:
 
         output = ''
         output += "Nodes in layer %s:\n" % layer
-        for node in self.tree.values():
-            if node.layer == layer: output += node+ ' \n'
+        for node in self.layers[layer]:
+            output += node + ' \n'
         if prints: print output
         else: return output
 
@@ -95,3 +103,12 @@ class Tree:
                 subtree[node.name] = copy(node)
             else: break
         return subtree
+
+    def updateTypes(self):
+
+        for layer in range(len(self.layers), 1, -1):
+            for node in self.layers[layer]:
+                parent = self.tree[node].parent
+                for i in range(3):
+                    self.tree[parent].type[i] += \
+                            self.tree[node].type[i]
