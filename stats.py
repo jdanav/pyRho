@@ -39,21 +39,6 @@ def ConfidenceInterval(tree):
     return '{:.3f}'.format(lower), '{:.3f}'.format(upper)
 
 
-##def StatAllNodes(tree):
-##
-##    subtrees = [ Tree(node, tree.subtree(node)) for node in tree.nodes]
-##    print "{:30}".format("Node"), "{:8}".format("  GDist"), \
-##          "{:6}".format("   Age"), \
-##          "{:8}".format("  SE  Confidence interval"), "\n" + "=" * 60
-##    for sub in subtrees:
-##        print "{:30}".format(sub.name), "{:7.4f}".format(Rho(sub)), \
-##              "{:7.1f}".format(Age(sub)), "{:5.1f}".format(StDev(sub)),\
-##              "{:18}".format(" ".join(ConfidenceInterval(sub)))
-##    print "=" * 60 + "\n", "{:30}".format("Node"), \
-##          "{:8}".format("  GDist"), "{:6}".format("   Age"),\
-##          "{:8}".format("  SE  Confidence interval\n\n")    
-
-
 def mutationCount(node, tree, mutCount = 0):
 
     mutCount += len(tree.tree[node].mutations)
@@ -63,6 +48,3 @@ def mutationCount(node, tree, mutCount = 0):
     return mutCount
 
 
-#if __name__ == '__main__':
-#    n = Tree("H13","C:\Users\Dan\Desktop\PyRHO\H13.xml")
-#    StatAllNodes(n)
