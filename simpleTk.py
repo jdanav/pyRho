@@ -6,34 +6,54 @@ from stats import *
 import tkFileDialog
 
 
+class Viewer(Frame):
+
+    def __init__(self, master):
+
+        Frame.__init__(self, root)
+        
+        self.tree = ttk.Treeview(root, height = 20, columns = \
+                    ('Mutations', 'Rho', 'Age', \
+                     'SE', 'Confidence interval'))
+        self.tree.column("#0",minwidth = 350, width = 600)
+        self.scroll = ttk.Scrollbar( root, orient=VERTICAL, \
+                                     command=self.tree.yview)
+        self.tree.configure(yscrollcommand=self.scroll.set)
+
+        for column in self.tree['columns']:
+            self.tree.heading(column, text=column, anchor= 'w')
+            self.tree.column(column, width = 65)
+        self.tree.column('Confidence interval', width = 150)
+        self.tree.insert('',0,'None', open = True)
+
+
+        for node in n.tree.values():
+            if node.name in n.leaves:
+                self.tree.insert(node.parent,'end', \
+                                 iid = node.name, text = node.name, \
+                            values = (len(node.mutations),'--','--','--','--'))
+            elif node.name in n.nodes:
+                xnode = Tree(node.name,n.subtree(node.name))
+                op = False
+                for child in node.children:
+                    if child in n.nodes: op = True; break
+                self.tree.insert(str(node.parent),'end', iid = node.name, text = node.name, \
+                            values = (len(node.mutations), Rho(xnode)[1], Age(xnode)[1], \
+                            StDev(xnode)[1], ConfidenceInterval(xnode)), open = op)
+
+        self.label = ttk.Label(root, text= '%s nodes and %s leaves' % \
+                               (len(n.nodes), len(n.leaves)))
+
+        self.label.grid(row = 1, sticky=(W))
+        self.scroll.grid(row = 0, column = 1, sticky=(N,S))
+        self.tree.grid(row = 0, column = 0)
+        
+
 root = Tk()
-root.title("Tree viewer")
+root.title("PyRHO")
 
 filename = tkFileDialog.askopenfilename(parent = root)
 n = Tree("",str(filename))
 
-tree = ttk.Treeview(root, height = 20, columns = \
-                    ('Mutations', 'Rho', 'Age', \
-                     'Standard error', 'Confidence interval'))
-tree.column("#0",minwidth = 350, width = 600)
-for column in tree['columns']:
-    tree.heading(column, text=column, anchor= 'w')
-    tree.column(column, width = len(column) * 15)
-tree.insert('',0,'None', open = True)
-
-
-for node in n.tree.values():
-    if node.name in n.leaves:
-        tree.insert(node.parent,'end',iid = node.name, text = node.name, \
-                    values = (len(node.mutations),'--','--','--','--'))
-    elif node.name in n.nodes:
-        xnode = Tree(node.name,n.subtree(node.name))
-        op = False
-        for child in node.children:
-            if child in n.nodes: op = True; break
-        tree.insert(str(node.parent),'end', iid = node.name, text = node.name, \
-                    values = (len(node.mutations), Rho(xnode)[1], Age(xnode)[1], \
-                    StDev(xnode)[1], ConfidenceInterval(xnode)), open = op)
-
-tree.grid()
+Viewer(root)
 root.mainloop()
