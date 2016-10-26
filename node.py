@@ -8,8 +8,7 @@ class Node:
         self.siblings = []
         self.mutations = mutations.split(',') if mutations else []
         self.layer = layer
-        self.founder = False
-        self.source = False
+        self.type = [0,0,0]
 
     def __str__(self):
 
@@ -20,14 +19,9 @@ class Node:
                   ' '.join(self.siblings))
 
 
-    def toggleFounder(self):
+    def isSource(self):
 
-        self.founder = not self.founder
-        return "%s founder status: %s\n" % (self.name, self.founder)
-
-
-    def toggleSource(self):
-
-        self.source = not self.source
-        return "Node %s is source" % self.name if self.source \
-              else "Node %s is sink" % self.name
+        t = self.type
+        if t == [0,0,1]: return "Sink"
+        elif t == [1,0,0] or t == [0,1,0]: return "Source"
+        else: return t
