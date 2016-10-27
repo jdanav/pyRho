@@ -13,8 +13,8 @@ class Viewer(Frame):
         Frame.__init__(self, root)
         
         self.tree = ttk.Treeview(root, height = 20, columns = \
-                    ('Mutations', 'Status', 'Rho', 'Age', \
-                     'SE', 'Confidence interval'))
+                    ('Mutations', 'Type', 'Leaves', 'Rho', 'Age', \
+                     'SE', 'Confidence interval', 'f1', 'f2', '#'))
         self.tree.column("#0",minwidth = 350, width = 600)
         self.scroll = ttk.Scrollbar( root, orient=VERTICAL, \
                                      command=self.tree.yview)
@@ -32,13 +32,17 @@ class Viewer(Frame):
                 self.tree.insert(node.parent,'end', \
                                  iid = node.name, text = node.name, \
                             values = (len(node.mutations), \
-                                      node.isSource(),'--','--','--','--'))
+                                      node.isSource(),'--','--','--','--','--',\
+                                      '--','--','--'))
             elif node.name in n.nodes:
                 xnode = Tree(node.name,n.subtree(node.name))
                 self.tree.insert(str(node.parent),'end', iid = node.name, \
                                  text = node.name, values = (len(node.mutations), \
-                                    node.isSource(), Rho(xnode)[1], Age(xnode)[1], \
-                            StDev(xnode)[1], ConfidenceInterval(xnode)), open = True)
+                                    node.isSource(), Rho(xnode)[1], Rho(xnode)[2], \
+                                    Age(xnode)[1], StDev(xnode)[1], \
+                                    ConfidenceInterval(xnode), fN(n, node.name, 1)[2],\
+                                    fN(n, node.name, 2)[2], fN(n, node.name, 1)[1]), \
+                                                             open = True)
 
         self.label = ttk.Label(root, text= '%s nodes and %s leaves in %s layers' % \
                                (len(n.nodes), len(n.leaves), len(n.layers)))
@@ -52,7 +56,7 @@ root = Tk()
 root.title("PyRHO")
 
 filename = tkFileDialog.askopenfilename(parent = root)
-n = Tree("",str(filename))
+n = Tree(str(filename),str(filename))
 
 Viewer(root)
 root.mainloop()

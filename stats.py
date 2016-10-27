@@ -7,7 +7,7 @@ def Rho(tree):
     for leaf in tree.leaves:
         mutCount += mutationCount(leaf, tree)
     rho = float(mutCount)/ len(tree.leaves)
-    return (rho, '{:.3f}'.format(rho))
+    return (rho, len(tree.leaves), '{:.3f}'.format(rho))
 
 
 def StDev(tree):
@@ -32,8 +32,8 @@ def ConfidenceInterval(tree):
     
     rho = Rho(tree)[0]
     sd = StDev(tree)[0]
-    lower = exp(-exp(-0.0263 * ((rho - (1.96 * sd)) + 40.2789)))* \
-            (rho - (1.96 * sd)) * 3624.0
+    lower = max(exp(-exp(-0.0263 * ((rho - (1.96 * sd)) + 40.2789)))* \
+            (rho - (1.96 * sd)) * 3624.0, 0)
     upper = exp(-exp(-0.0263 * ((rho + (1.96 * sd)) + 40.2789)))* \
             (rho + (1.96 * sd)) * 3624.0;
     return '{:.3f}'.format(lower), '{:.3f}'.format(upper)
@@ -48,3 +48,20 @@ def mutationCount(node, tree, mutCount = 0):
     return mutCount
 
 
+def fN(tree, node, N = 1):
+
+    t = tree.tree[node].type
+    if t[0] >= N and t[2] > 0:
+        return fStats(Tree('',tree.subtree(node)))
+    else: return ['','NE','NE']
+
+    
+def fStats(tree):
+
+    nodes = tree.tree.values()
+    for i in range(len(nodes)-1, 0, -1):
+        if nodes[i].type[0] > 0 or nodes[i].type[1] > 0:
+            tree.removeNode(nodes[i].name)
+    if len(tree.leaves) == 0: return ['',0,'N/A']
+    elif len(tree.leaves) == 1: return ['',1,0]
+    else: return Rho(tree)
