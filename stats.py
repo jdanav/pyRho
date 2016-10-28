@@ -51,17 +51,22 @@ def mutationCount(node, tree, mutCount = 0):
 def fN(tree, node, N = 1):
 
     t = tree.tree[node].type
-    if t[0] >= N and t[2] > 0:
-        return fStats(Tree('',tree.subtree(node)))
-    else: return ['','NE','NE']
-
+    if N == 1:
+        if t[0] >= N and t[2] > 0:
+            return fStats(Tree('',tree.subtree(node)), N)
+        else: return (['','NE','NE'], ['NE','NE'])
+    elif N == 2:
+        if t[0] >= N:
+            return fStats(Tree('',tree.subtree(node)), N)
+        else: return (['','NE','NE'], ['NE','NE'])
     
-def fStats(tree):
+def fStats(tree, N):
 
     nodes = tree.tree.values()
     for i in range(len(nodes)-1, 0, -1):
-        if nodes[i].type[0] > 0 or nodes[i].type[1] > 0:
-            tree.removeNode(nodes[i].name)
-    if len(tree.leaves) == 0: return ['',0,'N/A']
-    elif len(tree.leaves) == 1: return ['',1,0]
-    else: return Rho(tree)
+        if nodes[i].type[0] > (N-1) or nodes[i].type[1] > (N-1) \
+           or nodes[i].isSource() in ["Source", "Undefined"]:
+            tree.removeNode(nodes[i].name)            
+    if len(tree.leaves) == 0: return (['',0,'N/A'], ['N/A','N/A'])
+    elif len(tree.leaves) == 1: return (['',1,0], [0,0])
+    else: return Rho(tree), StDev(tree)

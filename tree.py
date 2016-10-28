@@ -8,7 +8,7 @@ from random import randint
 
 class Tree:
 
-    def __init__(self, name, source):
+    def __init__(self, name, source, types = ''):
 
         self.name = name
         self.tree = odict()
@@ -17,7 +17,7 @@ class Tree:
         self.layers = odict()
         self.noLabel = 0
         self.buildTree(source)
-        self.updateTypes()
+        self.updateLeaves(types)
 
     def buildTree(self, source):
 
@@ -52,7 +52,9 @@ class Tree:
             if len(node.children) > 0: self.nodes.append(node.name)
             else:
                 if type(source) == str:
-                    node.type = [0,0,1] if randint(0,1) == 1 else \
+                    x = randint(0,2)
+                    if x == 0: node.type = [-9,-9,-9]
+                    else: node.type = [0,0,1] if randint(0,1) == 1 else \
                         ([1,0,0] if len(node.mutations) > 0 else [0,1,0])
                 self.leaves.append(node.name)
             node.siblings = [i.name for i in self.tree.values()
@@ -91,12 +93,31 @@ class Tree:
             subtree[node].type = self.tree[node].type
         return subtree
 
-    def updateTypes(self):
+
+    def updateLeaves(self, filename = ''):
+
+        if filename == '': pass
+        else:
+            with filename as f:
+                codes = f.split()
+                for line in codes:
+                    if line[0] in self.leaves:
+                        leaf = self.tree[line[0]]
+                        if line[1] in ["Sink", "sink"]:
+                            leaf.type = [0,0,1]
+                        elif line[1] in ["Source","source"]:
+                            leaf.type = [1,0,0] if \
+                            leaf.mutations != [] else [0,1,0]
+                        else: leaf.type = [-9,-9,-9]
+        self.updateNodes()
+
+    def updateNodes(self):
 
         for layer in range(len(self.layers), 1, -1):
             for node in self.layers[layer]:
                 parent = self.tree[node].parent
-                if node in self.leaves:
+                if node in self.leaves and \
+                   self.tree[node].type != [-9,-9,-9]:                    
                     for i in range(3):
                         self.tree[parent].type[i] += \
                                 self.tree[node].type[i]
