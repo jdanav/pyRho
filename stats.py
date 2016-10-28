@@ -67,6 +67,6 @@ def fStats(tree, N):
         if nodes[i].type[0] > (N-1) or nodes[i].type[1] > (N-1) \
            or nodes[i].isSource() in ["Source", "Undefined"]:
             tree.removeNode(nodes[i].name)            
-    if len(tree.leaves) == 0: return (['',0,'N/A'], ['N/A','N/A'])
+    if len(tree.leaves) == 0: return (['',0,'--'], ['--','--']) #N/As
     elif len(tree.leaves) == 1: return (['',1,0], [0,0])
     else: return Rho(tree), StDev(tree)

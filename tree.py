@@ -17,7 +17,7 @@ class Tree:
         self.layers = odict()
         self.noLabel = 0
         self.buildTree(source)
-        self.updateLeaves(types)
+        self.updateTypes(types)
 
     def buildTree(self, source):
 
@@ -51,12 +51,12 @@ class Tree:
                              if i.parent == node.name]
             if len(node.children) > 0: self.nodes.append(node.name)
             else:
-                if type(source) == str:
-                    x = randint(0,2)
-                    if x == 0: node.type = [-9,-9,-9]
-                    else: node.type = [0,0,1] if randint(0,1) == 1 else \
-                        ([1,0,0] if len(node.mutations) > 0 else [0,1,0])
                 self.leaves.append(node.name)
+##                if type(source) == str:
+##                    x = randint(0,2)
+##                    if x == 0: node.type = [-9,-9,-9]
+##                    else: node.type = [0,0,1] if randint(0,1) == 1 else \
+##                        ([1,0,0] if len(node.mutations) > 0 else [0,1,0])
             node.siblings = [i.name for i in self.tree.values()
                              if i.parent == node.parent]
             node.siblings.remove(node.name)
@@ -94,21 +94,23 @@ class Tree:
         return subtree
 
 
-    def updateLeaves(self, filename = ''):
+    def updateTypes(self, types = ''):
 
-        if filename == '': pass
+        if types == '': pass
         else:
-            with filename as f:
-                codes = f.split()
-                for line in codes:
-                    if line[0] in self.leaves:
-                        leaf = self.tree[line[0]]
-                        if line[1] in ["Sink", "sink"]:
-                            leaf.type = [0,0,1]
-                        elif line[1] in ["Source","source"]:
-                            leaf.type = [1,0,0] if \
-                            leaf.mutations != [] else [0,1,0]
-                        else: leaf.type = [-9,-9,-9]
+            f = open(types, 'r')
+            codes = f.readlines()
+            f.close()
+            for line in codes:
+                line = line.strip('\n').split('\t')
+                if line[0] in self.leaves:
+                    leaf = self.tree[line[0]]
+                    if line[1] in ["Sink", "sink", "SINK"]:
+                        leaf.type = [0,0,1]
+                    elif line[1] in ["Source","source", "SOURCE"]:
+                        leaf.type = [1,0,0] if \
+                        leaf.mutations != [] else [0,1,0]
+                    else: leaf.type = [-9,-9,-9]
         self.updateNodes()
 
     def updateNodes(self):
