@@ -2,10 +2,8 @@
 #!/usr/bin/env python
 
 from Tkinter import *
-import ttk
 from stats import *
-import tkFileDialog
-from copy import copy
+import ttk, tkFileDialog
 
 
 root = Tk()
@@ -40,7 +38,7 @@ for frame in [main, f1S, f2S]:
 
     for column in frame.tree['columns']:
         frame.tree.heading(column, text=column, anchor= 'w')
-        frame.tree.column(column, width = 50)
+        frame.tree.column(column, width = 50, stretch = True)
     frame.tree.column('Age', width = 60)
     frame.tree.column('Mutations', width = 65)
     frame.tree.column('Confidence interval', width = 150)

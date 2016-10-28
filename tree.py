@@ -110,7 +110,7 @@ class Tree:
                     elif line[1] in ["Source","source", "SOURCE"]:
                         leaf.type = [1,0,0] if \
                         leaf.mutations != [] else [0,1,0]
-                    else: leaf.type = [-9,-9,-9]
+                    else: leaf.type = [0,0,0]
         self.updateNodes()
 
     def updateNodes(self):
@@ -119,7 +119,7 @@ class Tree:
             for node in self.layers[layer]:
                 parent = self.tree[node].parent
                 if node in self.leaves and \
-                   self.tree[node].type != [-9,-9,-9]:                    
+                   self.tree[node].type != [0,0,0]:                    
                     for i in range(3):
                         self.tree[parent].type[i] += \
                                 self.tree[node].type[i]
