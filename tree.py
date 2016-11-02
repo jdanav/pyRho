@@ -85,8 +85,6 @@ class Tree:
             if node.layer > layer:
                 subtree[node.name] = copy(node)
             else: break
-        for node in subtree:
-            subtree[node].type = self.tree[node].type
         return subtree
 
 
