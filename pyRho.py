@@ -7,7 +7,7 @@ import ttk, tkFileDialog
 
 
 root = Tk()
-root.title("PyRHO")
+root.title("PyRHO 0.3")
 
 filename = tkFileDialog.askopenfilename(parent = root)
 types = tkFileDialog.askopenfilename(parent = root)
