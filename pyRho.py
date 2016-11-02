@@ -44,6 +44,7 @@ for frame in [main, f1S, f2S]:
     frame.tree.column('Confidence interval', width = 150)
     frame.tree.column('Type', width = 65)
     frame.tree.insert('',0,'None', open = True)
+    frame.tree.heading("#0",text="File path: %s" % n.name, anchor = 'w') 
 
 
     for node in n.tree.values():
