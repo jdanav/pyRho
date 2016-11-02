@@ -4,7 +4,6 @@ from tree import Tree
 def Rho(tree):
 
     if 'Rho' in tree.tree.values()[0].extra.keys():
-        print 'Rho already computed'
         return tree.tree.values()[0].extra['Rho']
     mutCount = 0
     for leaf in tree.leaves:
