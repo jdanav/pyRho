@@ -52,11 +52,7 @@ class Tree:
             if len(node.children) > 0: self.nodes.append(node.name)
             else:
                 self.leaves.append(node.name)
-##                if type(source) == str:
-##                    x = randint(0,2)
-##                    if x == 0: node.type = [-9,-9,-9]
-##                    else: node.type = [0,0,1] if randint(0,1) == 1 else \
-##                        ([1,0,0] if len(node.mutations) > 0 else [0,1,0])
+
             node.siblings = [i.name for i in self.tree.values()
                              if i.parent == node.parent]
             node.siblings.remove(node.name)
