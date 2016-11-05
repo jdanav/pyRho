@@ -9,7 +9,7 @@ class Node:
         self.mutations = mutations.split(',') if mutations else []
         self.layer = layer
         self.type = [0,0,0]
-        self.extra = {}
+        self.extra = {i:'--' for i in ('Rho','Age','SE','CI')}
 
     def __str__(self):
 
@@ -25,5 +25,5 @@ class Node:
         t = self.type
         if t == [0,0,1]: return "Sink"
         elif t == [1,0,0] or t == [0,1,0]: return "Source"
-        elif t == [0,0,0]: return "Undefined"
+        elif t == [0,0,0] and self.children == []: return "Undefined"
         else: return t

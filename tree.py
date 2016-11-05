@@ -4,13 +4,11 @@ import re
 from collections import defaultdict as ddict, OrderedDict as odict
 from copy import copy
 from node import Node
-from random import randint
 
 class Tree:
 
-    def __init__(self, name, source, types = ''):
+    def __init__(self, source, types = ''):
 
-        self.name = name
         self.tree = odict()
         self.nodes = []
         self.leaves = []
@@ -18,6 +16,7 @@ class Tree:
         self.noLabel = 0
         self.buildTree(source)
         self.updateTypes(types)
+        self.root = self.tree.values()[0]
 
     def buildTree(self, source):
 
@@ -58,12 +57,6 @@ class Tree:
             node.siblings.remove(node.name)
 
 
-    def __str__(self):
-
-        return "Tree name: %s\n\n%s nodes and %s leaves" \
-               % (self.name, len(self.nodes), len(self.leaves))
-
-
     def removeNode(self, node):
 
         for child in self.tree[node].children:
@@ -74,7 +67,7 @@ class Tree:
         
 
     def subtree(self, root):
-
+        print 1,
         subtree = odict()
         idx = self.tree.keys().index(root)
         layer = self.tree[root].layer
