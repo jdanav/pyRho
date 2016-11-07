@@ -105,8 +105,8 @@ class Tree:
                         self.tree[parent].type[i] += \
                                 self.tree[node].type[i]
                 elif node in self.leaves and \
-                     self.tree[node].type == [0,0,0,1]:
-                    self.tree[parent].type[-1] += 1
+                     self.tree[node].isSource() == "Undefined":
+                    self.tree[parent].type[3] += 1
                 elif node in self.nodes:
                     if self.tree[node].type[:1] > [0,0]:
                         self.tree[parent].type[0] += 1
