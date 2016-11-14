@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import re
+import re, sys
 from collections import defaultdict as ddict, OrderedDict as odict
 from copy import copy
 from node import Node
@@ -18,8 +18,8 @@ class Tree:
         self.noLabel = 0
         self.buildTree(source)
         self.root = self.tree.values()[0]
-        self.subtrees = {node: self.subtree(node) for node in self.nodes} 
-
+        self.subtrees = {node: self.subtree(node) for node in self.nodes}         
+        print
 
     def buildTree(self, source):
 
@@ -27,9 +27,11 @@ class Tree:
             f = open(source,'r')
             layers, l = ddict(list), 1
             layers[0] = None
-            for i in f.readlines():
-                match = re.search('Id=(.*) HG=(.*)>', i)
-                if "/Node" in i: l -= 1
+            F = f.readlines(); f.close()
+            for i in range(len(F)):
+                sys.stdout.write('\rLoading XML... %.0f%%' % ((float(i)/len(F))*100))
+                match = re.search('Id=(.*) HG=(.*)>', F[i])
+                if "/Node" in F[i]: l -= 1
                 elif match is None: pass
                 else:
                     node = Node(match.group(1).strip('" '), layers[l-1], match.group(2).strip('" /,'), l)
@@ -40,10 +42,9 @@ class Tree:
                     if not node.layer in self.layers:
                         self.layers[node.layer] = [node.name]
                     else: self.layers[node.layer].append(node.name)
-                    if not "/>" in i:
+                    if not "/>" in F[i]:
                         layers[l] = node.name; l += 1
-            f.close()
-            
+            print
         else: print "Invalid input"; return ''
 
         for node in self.tree.values():
@@ -56,11 +57,11 @@ class Tree:
             node.siblings = [i.name for i in self.tree.values()
                              if i.parent == node.parent]
             node.siblings.remove(node.name)
-        
 
     def subtree(self, root):
         subtree = odict()
         idx = self.tree.keys().index(root)
+        sys.stdout.write('\rBuilding subtrees... %.0f%%' % (float(idx)/self.tree.keys().index(self.nodes[-1])*100))      
         layer = self.tree[root].layer
         subtree[root] = copy(self.tree[root])
         while idx < len(self.tree)-1:

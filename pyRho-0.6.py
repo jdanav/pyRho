@@ -83,9 +83,9 @@ def openXML():
             frame.tree.delete('None')
             frame.tree.insert('',0,'None', open = True)
 
-            
-            
+        i = 0
         for node in n.tree.values():
+
             if node.name in n.leaves:
                 main.tree.insert(node.parent,'end', iid = node.name, text = node.name, tags = ('leaf'), values = (len(node.mutations), '--','--','--','--','--'))
                 f1S.tree.insert(node.parent,'end', iid = node.name, text = node.name, tags = ('leaf'), values = (len(node.mutations), node.isSource(),'--','--','--'))
@@ -97,7 +97,9 @@ def openXML():
                 main.tree.insert(str(node.parent),'end', iid = node.name, text = node.name, tags = ('node'), values = (len(node.mutations), len(set(xnode.keys()) & set (n.leaves)), n.Rho(node.name, xnode), n.StErr(xnode), n.Age(node.name), n.ConfidenceInterval(node.name)), open = True)
                 f1S.tree.insert(str(node.parent),'end', iid = node.name, text = node.name, tags = ('node'), values = (len(node.mutations), '--', f1[0], f1[1], f1[2]), open = True)
                 f2S.tree.insert(str(node.parent),'end', iid = node.name, text = node.name, tags = ('node'), values = (len(node.mutations), '--', f2[0], f2[1], f2[2], n.f2plus(node.name)), open = True)
-            
+            i += 1
+            sys.stdout.write('\rWriting to window... %.0f%%' % (float(i)/len(n.tree)*100))
+        print '\n'
         filemenu.entryconfig(1, state="normal")
     except: print
     
