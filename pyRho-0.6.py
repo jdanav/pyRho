@@ -112,6 +112,7 @@ def openTypes():
         frames = notebook.winfo_children()
         types = tkFileDialog.askopenfilename(parent = root)
         n.updateTypes(str(types))
+        i = 0.0
         for node in n.tree.values():
             if node.name in n.leaves:
                 frames[1].winfo_children()[0].item(node.name, values = (len(node.mutations), node.isSource(),'--','--','--', '--'))
@@ -121,6 +122,8 @@ def openTypes():
                 f2 = n.fN(node.name, 2)
                 frames[1].winfo_children()[0].item(node.name, values = (len(node.mutations), node.isSource(), f1[0], f1[1], f1[2]))
                 frames[2].winfo_children()[0].item(node.name, values = (len(node.mutations), node.isSource(), f2[0], f2[1], f2[2], n.f2plus(node.name)))
+            i += 1
+        print '\n'
     except: print
     
 filemenu.add_command(label = "Open XML file", command = openXML)

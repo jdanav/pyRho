@@ -29,7 +29,7 @@ class Tree:
             layers[0] = None
             F = f.readlines(); f.close()
             for i in range(len(F)):
-                sys.stdout.write('\rLoading XML... %.0f%%' % ((float(i)/len(F))*100))
+                sys.stdout.write('\rLoading XML... %.0f%%' % ((float(i)/len(F))*50))
                 match = re.search('Id=(.*) HG=(.*)>', F[i])
                 if "/Node" in F[i]: l -= 1
                 elif match is None: pass
@@ -44,9 +44,10 @@ class Tree:
                     else: self.layers[node.layer].append(node.name)
                     if not "/>" in F[i]:
                         layers[l] = node.name; l += 1
-            print
+            
         else: print "Invalid input"; return ''
 
+        j = 0.0
         for node in self.tree.values():
             node.children = [i.name for i in self.tree.values()
                              if i.parent == node.name]
@@ -57,11 +58,14 @@ class Tree:
             node.siblings = [i.name for i in self.tree.values()
                              if i.parent == node.parent]
             node.siblings.remove(node.name)
+            j += 1
+            sys.stdout.write('\rLoading XML... %.5f%%' % (((j + len(self.tree))/(len(self.tree)*2)*100)))
+        print
 
     def subtree(self, root):
         subtree = odict()
         idx = self.tree.keys().index(root)
-        sys.stdout.write('\rBuilding subtrees... %.0f%%' % (float(idx)/self.tree.keys().index(self.nodes[-1])*100))      
+        sys.stdout.write('\rUpdating nodes... %.0f%%' % (float(idx)/self.tree.keys().index(self.nodes[-1])*100))      
         layer = self.tree[root].layer
         subtree[root] = copy(self.tree[root])
         while idx < len(self.tree)-1:
@@ -75,7 +79,7 @@ class Tree:
 
     def updateTypes(self, types = ''):
 
-        if types == '': pass
+        if types == '': return
         else:
             for i in self.tree.values(): i.type = [0,0,0,0]
             f = open(types, 'r')
@@ -147,7 +151,7 @@ class Tree:
         return age
 
 
-    def StErr(self, sub, f = False): ### values for fN are different
+    def StErr(self, sub, f = False):
 
         if not f and sub.values()[0].extra['SE'] != '--':
             return sub.values()[0].extra['SE']
@@ -155,11 +159,12 @@ class Tree:
         leaves = set(sub.keys()) & set(self.leaves)
         nodes = set(sub.keys()[1:]) & set(self.nodes)
         for leaf in leaves: tSum += len(self.tree[leaf].mutations)
-        for nd in list(nodes):
-            lv = set(self.subtrees[nd].keys()) & set(self.leaves)
+        for nd in nodes:
+            if not f: lv = set(self.subtrees[nd].keys()) & set(self.leaves)
+            else: lv = set(self.subtrees[nd].keys()) & set([i for i in self.leaves if self.tree[i].isSource() == 'Sink'])
             tSum += len(self.tree[nd].mutations) * len(lv) **2
         se = sqrt(tSum/(len(leaves)**2))
-        sub.values()[0].extra['SE'] = se
+        if not f: sub.values()[0].extra['SE'] = se
         return se
 
 
@@ -204,7 +209,7 @@ class Tree:
     def f2plus(self, node):
 
         parent  = self.tree[node].parent
-        if parent == None: self.tree[node].extra['f2+'] = False
+        if parent == None: self.tree[node].extra['f2+'] = True
         elif 'f2' in self.tree[node].extra.keys() and 'f2' in self.tree[parent].extra.keys():
             self.tree[node].extra['f2+'] = True
         else: self.tree[node].extra['f2+'] = False
