@@ -18,8 +18,7 @@ class Tree:
         self.noLabel = 0
         self.buildTree(source)
         self.root = self.tree.values()[0]
-        self.subtrees = {node: self.subtree(node) \
-                         for node in self.nodes} 
+        self.subtrees = {node: self.subtree(node) for node in self.nodes} 
 
 
     def buildTree(self, source):
@@ -33,8 +32,7 @@ class Tree:
                 if "/Node" in i: l -= 1
                 elif match is None: pass
                 else:
-                    node = Node(match.group(1).strip('" '), layers[l-1],
-                                match.group(2).strip('" /,'), l)
+                    node = Node(match.group(1).strip('" '), layers[l-1], match.group(2).strip('" /,'), l)
                     if node.name == "NoLabel":
                         self.noLabel += 1
                         node.name = node.name + "_%s" % self.noLabel
@@ -78,6 +76,7 @@ class Tree:
 
         if types == '': pass
         else:
+            for i in self.tree.values(): i.type = [0,0,0,0]
             f = open(types, 'r')
             codes = f.readlines()
             f.close()
@@ -88,8 +87,7 @@ class Tree:
                     if line[1] in ["Sink", "sink", "SINK"]:
                         leaf.type = [0,0,1,0]
                     elif line[1] in ["Source","source", "SOURCE"]:
-                        leaf.type = [1,0,0,0] if \
-                        leaf.mutations != [] else [0,1,0,0]
+                        leaf.type = [1,0,0,0] if leaf.mutations != [] else [0,1,0,0]
                     else: leaf.type = [0,0,0,1]
         self.updateNodes()
         self.subtrees = {node: self.subtree(node) for node in self.nodes}
@@ -99,16 +97,13 @@ class Tree:
         for layer in range(len(self.layers), 1, -1):
             for node in self.layers[layer]:
                 parent = self.tree[node].parent
-                if node in self.leaves and \
-                   self.tree[node].type != [0,0,0,1]:                    
-                    for i in range(3):
-                        self.tree[parent].type[i] += \
-                                self.tree[node].type[i]
-                elif node in self.leaves and \
-                     self.tree[node].isSource() == "Undefined":
+                if node in self.leaves and self.tree[node].isSource() != "Undefined":                    
+                    for i in range(4):
+                        self.tree[parent].type[i] += self.tree[node].type[i]
+                elif node in self.leaves and self.tree[node].isSource() == "Undefined":
                     self.tree[parent].type[3] += 1
                 elif node in self.nodes:
-                    if self.tree[node].type[:1] > [0,0]:
+                    if self.tree[node].type[:2] > [0,0]:
                         self.tree[parent].type[0] += 1
                     elif self.tree[node].type[2] >= 1:
                         self.tree[parent].type[2] += 1
@@ -171,10 +166,8 @@ class Tree:
 
         rho = self.Rho(node, self.subtrees[node])
         se = self.StErr(self.subtrees[node])
-        lower = max(exp(-exp(-0.0263 * ((rho - (1.96 * se)) + 40.2789))) \
-                * (rho - (1.96 * se)) * 3624.0, 0)
-        upper = exp(-exp(-0.0263 * ((rho + (1.96 * se)) + 40.2789))) \
-                * (rho + (1.96 * se)) * 3624.0;
+        lower = max(exp(-exp(-0.0263 * ((rho - (1.96 * se)) + 40.2789))) * (rho - (1.96 * se)) * 3624.0, 0)
+        upper = exp(-exp(-0.0263 * ((rho + (1.96 * se)) + 40.2789))) * (rho + (1.96 * se)) * 3624.0;
         return lower, upper
 
 
@@ -183,24 +176,35 @@ class Tree:
         t = self.tree[node].type
         if N == 1:
             if t[0] >= N and t[2] > 0:
+                self.tree[node].extra['f1'] = True
                 return self.fStats(node, N)
             else: return ['NE','NE','NE']
         elif N == 2:
             if t[0] >= N:
+                self.tree[node].extra['f2'] = True                
                 return self.fStats(node, N)
             else: return ['NE','NE','NE']
+
         
     def fStats(self, node, N):
 
         sub = copy(self.subtrees[node])
         for i in range(len(sub)-1, 0, -1):
             tp = sub.values()[i].type
-            if tp[0] > (N-1) or tp[1] > (N-1) or \
-                sub.values()[i].isSource() in ["Source", "Undefined"]:
+            if tp[0] > (N-1) or tp[1] > (N-1) or sub.values()[i].isSource() in ["Source", "Undefined"]:
                 sub = self.removeNode(sub, sub.keys()[i])
         leaves = set(sub.keys()) & set(self.leaves)
         if len(leaves) == 0: return [0,'--','--']
         elif len(leaves) == 1: return [1,0,0]
         else:
-            return len(leaves), self.Rho(node, sub, True), \
-                   self.StErr(sub, True)
+            return len(leaves), self.Rho(node, sub, True), self.StErr(sub, True)
+
+
+    def f2plus(self, node):
+
+        parent  = self.tree[node].parent
+        if parent == None: self.tree[node].extra['f2+'] = False
+        elif 'f2' in self.tree[node].extra.keys() and 'f2' in self.tree[parent].extra.keys():
+            self.tree[node].extra['f2+'] = True
+        else: self.tree[node].extra['f2+'] = False
+        return self.tree[node].extra['f2+']
