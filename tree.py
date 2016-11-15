@@ -16,9 +16,9 @@ class Tree:
         self.leaves = []
         self.layers = odict()
         self.noLabel = 0
+        self.subtrees = {}         
         self.buildTree(source)
         self.root = self.tree.values()[0]
-        self.subtrees = {node: self.subtree(node, odict()) for node in self.nodes}         
         print
 
     def buildTree(self, source):
@@ -29,7 +29,7 @@ class Tree:
             layers[0] = None
             F = f.readlines(); f.close()
             for i in range(len(F)):
-                sys.stdout.write('\rLoading XML... %.0f%%' % ((float(i)/len(F))*100))
+                sys.stdout.write('\rLoading XML... %.2f%%' % (((i + 1.0)/len(F))*100))
                 match = re.search('Id=(.*) HG=(.*)>', F[i])
                 if "/Node" in F[i]: l -= 1
                 elif match is None: pass
@@ -46,25 +46,21 @@ class Tree:
                     if not "/>" in F[i]:
                         layers[l] = node.name; l += 1
                         self.nodes.append(node.name)
+                        self.subtrees[node.name] = odict(([node.name, node],))
                     else: self.leaves.append(node.name)
+                    for x in layers.values()[1:l+1]:
+                        if node.layer > self.tree[x].layer: self.subtrees[x][node.name] = copy(node)
+                
             
         else: print "Invalid input"; return ''
         print 
 
 
-    def subtree(self, root, subtree = odict()):
+    def updateSub(self, node):
 
-        idx = self.tree.keys().index(root)
-        sys.stdout.write('\rUpdating nodes... %.0f%%' % ((float(idx)/self.tree.keys().index(self.nodes[-1]))*100))     
-        layer = self.tree[root].layer
-        subtree[root] = copy(self.tree[root])
-        while idx < len(self.tree)-1:
-            idx += 1
-            node = self.tree[self.tree.keys()[idx]]
-            if node.layer > layer:
-                subtree[node.name] = copy(node)
-            else: break
-        return subtree
+        sub = self.subtrees[node]
+        for k in sub.keys(): sub[k] = copy(self.tree[k])
+        return sub
 
 
     def updateTypes(self, types = ''):
@@ -75,6 +71,7 @@ class Tree:
             f = open(types, 'r')
             codes = f.readlines()
             f.close()
+            j = 0.0
             for line in codes:
                 line = line.strip('\n').split('\t')
                 if line[0] in self.leaves:
@@ -84,10 +81,13 @@ class Tree:
                     elif line[1] in ["Source","source", "SOURCE"]:
                         leaf.type = [1,0,0,0] if leaf.mutations != [] else [0,1,0,0]
                     else: leaf.type = [0,0,0,1]
-        self.updateNodes()
-        self.subtrees = {node: self.subtree(node, odict()) for node in self.nodes}
+                j += 1
+                sys.stdout.write('\rUpdating types... %.2f%%' % ((j/(len(codes) + len(self.tree) + len(self.subtrees))*100)))
+        self.updateNodes(j, len(codes))
+        self.subtrees = {node : self.updateSub(node) for node in self.nodes}
+        sys.stdout.write('\rUpdating types... 100.00%%')
 
-    def updateNodes(self):
+    def updateNodes(self, j, c):
 
         for layer in range(len(self.layers), 1, -1):
             for node in self.layers[layer]:
@@ -103,7 +103,9 @@ class Tree:
                     elif self.tree[node].type[2] >= 1:
                         self.tree[parent].type[2] += 1
                     else: self.tree[parent].type[3] += 1
-
+                j += 1
+                sys.stdout.write('\rUpdating types... %.2f%%' % ((j/(c + len(self.tree) + len(self.subtrees))*100)))
+                
 
     def Rho(self, root, sub, f = False):
 

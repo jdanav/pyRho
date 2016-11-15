@@ -98,7 +98,7 @@ def openXML():
                 f1S.tree.insert(str(node.parent),'end', iid = node.name, text = node.name, tags = ('node'), values = (len(node.mutations), '--', f1[0], f1[1], f1[2]), open = True)
                 f2S.tree.insert(str(node.parent),'end', iid = node.name, text = node.name, tags = ('node'), values = (len(node.mutations), '--', f2[0], f2[1], f2[2], n.f2plus(node.name)), open = True)
             i += 1
-            sys.stdout.write('\rWriting to window... %.0f%%' % (float(i)/len(n.tree)*100))
+            sys.stdout.write('\rWriting to window... %.2f%%' % (float(i)/len(n.tree)*100))
         print '\n'
         filemenu.entryconfig(1, state="normal")
     except: print
