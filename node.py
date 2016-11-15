@@ -15,7 +15,7 @@ class Node:
     def isSource(self):
 
         t = self.type
-        if t == [0,0,1,0]: return "Sink"
-        elif t == [1,0,0,0] or t == [0,1,0,0]: return "Source"
-        elif t == [0,0,0,1] or (t == [0,0,0,0] and self.children == []): return "Undefined"
+        if t == [0,0,1,0] and self.children == []: return "Sink"
+        elif (t == [1,0,0,0] or t == [0,1,0,0]) and self.children == []: return "Source"
+        elif (t == [0,0,0,1] or t == [0,0,0,0]) and self.children == []: return "Undefined"
         else: return t

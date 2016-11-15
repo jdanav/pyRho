@@ -18,7 +18,7 @@ class Tree:
         self.noLabel = 0
         self.buildTree(source)
         self.root = self.tree.values()[0]
-        self.subtrees = {node: self.subtree(node) for node in self.nodes}         
+        self.subtrees = {node: self.subtree(node, odict()) for node in self.nodes}         
         print
 
     def buildTree(self, source):
@@ -29,7 +29,7 @@ class Tree:
             layers[0] = None
             F = f.readlines(); f.close()
             for i in range(len(F)):
-                sys.stdout.write('\rLoading XML... %.0f%%' % ((float(i)/len(F))*50))
+                sys.stdout.write('\rLoading XML... %.0f%%' % ((float(i)/len(F))*100))
                 match = re.search('Id=(.*) HG=(.*)>', F[i])
                 if "/Node" in F[i]: l -= 1
                 elif match is None: pass
@@ -39,33 +39,23 @@ class Tree:
                         self.noLabel += 1
                         node.name = node.name + "_%s" % self.noLabel
                     self.tree[node.name] = node
+                    if l >= 2: self.tree[layers[l-1]].children.append(node.name)
                     if not node.layer in self.layers:
                         self.layers[node.layer] = [node.name]
                     else: self.layers[node.layer].append(node.name)
                     if not "/>" in F[i]:
                         layers[l] = node.name; l += 1
+                        self.nodes.append(node.name)
+                    else: self.leaves.append(node.name)
             
         else: print "Invalid input"; return ''
+        print 
 
-        j = 0.0
-        for node in self.tree.values():
-            node.children = [i.name for i in self.tree.values()
-                             if i.parent == node.name]
-            if len(node.children) > 0: self.nodes.append(node.name)
-            else:
-                self.leaves.append(node.name)
 
-            node.siblings = [i.name for i in self.tree.values()
-                             if i.parent == node.parent]
-            node.siblings.remove(node.name)
-            j += 1
-            sys.stdout.write('\rLoading XML... %.5f%%' % (((j + len(self.tree))/(len(self.tree)*2)*100)))
-        print
+    def subtree(self, root, subtree = odict()):
 
-    def subtree(self, root):
-        subtree = odict()
         idx = self.tree.keys().index(root)
-        sys.stdout.write('\rUpdating nodes... %.0f%%' % (float(idx)/self.tree.keys().index(self.nodes[-1])*100))      
+        sys.stdout.write('\rUpdating nodes... %.0f%%' % ((float(idx)/self.tree.keys().index(self.nodes[-1]))*100))     
         layer = self.tree[root].layer
         subtree[root] = copy(self.tree[root])
         while idx < len(self.tree)-1:
@@ -95,7 +85,7 @@ class Tree:
                         leaf.type = [1,0,0,0] if leaf.mutations != [] else [0,1,0,0]
                     else: leaf.type = [0,0,0,1]
         self.updateNodes()
-        self.subtrees = {node: self.subtree(node) for node in self.nodes}
+        self.subtrees = {node: self.subtree(node, odict()) for node in self.nodes}
 
     def updateNodes(self):
 
