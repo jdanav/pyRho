@@ -19,7 +19,6 @@ class Tree:
         self.subtrees = {}         
         self.buildTree(source)
         self.root = self.tree.values()[0]
-        print
 
     def buildTree(self, source):
 
@@ -50,17 +49,17 @@ class Tree:
                     else: self.leaves.append(node.name)
                     for x in layers.values()[1:l+1]:
                         if node.layer > self.tree[x].layer: self.subtrees[x][node.name] = copy(node)
-                
+            print 
             
         else: print "Invalid input"; return ''
-        print 
 
 
-    def updateSub(self, node):
+    def updateSubs(self, j, c):
 
-        sub = self.subtrees[node]
-        for k in sub.keys(): sub[k] = copy(self.tree[k])
-        return sub
+        for sub in self.subtrees.values(): 
+            for k in sub.keys(): sub[k] = copy(self.tree[k])
+            j += 1
+            sys.stdout.write('\rUpdating types... %.2f%%' % ((j/(c + len(self.tree) + len(self.subtrees))*100)))
 
 
     def updateTypes(self, types = ''):
@@ -84,9 +83,10 @@ class Tree:
                 j += 1
                 sys.stdout.write('\rUpdating types... %.2f%%' % ((j/(len(codes) + len(self.tree) + len(self.subtrees))*100)))
         self.updateNodes(j, len(codes))
-        self.subtrees = {node : self.updateSub(node) for node in self.nodes}
-        sys.stdout.write('\rUpdating types... 100.00%%')
+        self.updateSubs(j + len(self.tree), len(codes))
+        print
 
+        
     def updateNodes(self, j, c):
 
         for layer in range(len(self.layers), 1, -1):
@@ -105,6 +105,24 @@ class Tree:
                     else: self.tree[parent].type[3] += 1
                 j += 1
                 sys.stdout.write('\rUpdating types... %.2f%%' % ((j/(c + len(self.tree) + len(self.subtrees))*100)))
+                
+
+    def Newick(self, node, string = ''):
+
+        if node == None:
+            children = self.layers[1]
+            string = ')'
+            for child in children: 
+                string = ',' + self.Newick(child, string)
+            string = '(' + string[1:]
+        else:
+            string = '%s:%s' % (node, len(self.tree[node].mutations)) + string
+            if self.tree[node].children == []: return string
+            string = ')' + string
+            for child in self.tree[node].children:
+                string = ',' + self.Newick(child, string)
+            string = '(' + string[1:]
+        return string
                 
 
     def Rho(self, root, sub, f = False):
