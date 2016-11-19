@@ -13,7 +13,7 @@ menubar = Menu(root)
 
 filemenu = Menu(menubar, tearoff = 0)
 exportmenu = Menu(menubar, tearoff = 0)
-
+viewmenu = Menu(menubar, tearoff = 0)
 nb = ttk.Notebook(root)
 nb.enable_traversal()
 nb.pack(fill = BOTH, expand = 1)
@@ -22,15 +22,35 @@ main = Frame(nb)
 f1S = Frame(nb)
 f2S = Frame(nb)
 
+visible = 1
+
 n = None
 
 def getItem(a):
-    w = root.nametowidget(root.focus_get());
+    
+    w = root.nametowidget(root.focus_get())
     root.clipboard_clear()
     root.clipboard_append(w.item(w.focus()))
     print root.selection_get(selection = "CLIPBOARD")
+
+
+def toggleLeaves():
     
-    
+    global visible
+    if visible: 
+        for frame in [main, f1S, f2S]:
+            t = frame.tree; t.detach(*n.leaves)
+        visible = 0
+
+    else:
+        for frame in [main, f1S, f2S]:
+            t = frame.tree; t.detach(*n.leaves)
+            for item in n.leaves:
+                parent = n.tree[n.tree[item].parent]
+                t.reattach(item,parent.name,parent.children.index(item))
+        visible = 1
+
+
 for frame in [main, f1S, f2S]:
 
     frame.tree = ttk.Treeview(frame, height = 20);
@@ -39,7 +59,6 @@ for frame in [main, f1S, f2S]:
     frame.tree.bind('<Control-c>', getItem)
     frame.tree.configure(yscrollcommand = frame.scroll.set)
     frame.tree['selectmode'] = 'extended'
-
     frame.label = ttk.Label(frame, text = '%s nodes and %s leaves in %s layers' % (0,0,0))
     frame.tree.insert('',0,'None', open = True)
     frame.tree.heading("#0",text = "File path:\t%s" % '', anchor = 'w')
@@ -48,8 +67,8 @@ for frame in [main, f1S, f2S]:
     frame.scroll.pack(side = RIGHT, fill = BOTH)
     frame.tree.pack(fill = BOTH, expand = 1)
 
-    frame.tree.tag_configure('leaf', background = '#ffffff')
-    frame.tree.tag_configure('node', background = '#ffffe0')
+    frame.tree.tag_configure('leaf', background = '#ffffe0')
+    frame.tree.tag_configure('node', background = '#ffffff')
      
 main.tree['columns'] = ('Mutations','Leaves', u'ρ (Rho)', 'SE', 'Age', 'Confidence interval')
 for column in main.tree['columns']:
@@ -81,7 +100,7 @@ nb.add(f2S, text = "f2 statistics")
 def openXML():
 
     try:
-        global n, filemenu, menubar
+        global n, visible, filemenu, menubar
         filename = tkFileDialog.askopenfilename(parent = root)
         n = Tree(str(filename))
 
@@ -90,6 +109,7 @@ def openXML():
             frame.tree.heading("#0",text = "File path:\t%s" % filename, anchor = 'w')
             frame.tree.delete('None')
             frame.tree.insert('',0,'None', open = True)
+            visible = 1            
 
         i = 0
         for node in n.tree.values():
@@ -109,8 +129,11 @@ def openXML():
             sys.stdout.write('\rPopulating tree... %.2f%%' % (float(i)/len(n.tree)*100))
         print '\n'
         filemenu.entryconfig(1, state = "normal")
-        menubar.entryconfig(2, state = "normal")
-    except: print
+        viewmenu.entryconfig(1, state = "normal")
+        menubar.entryconfig(3, state = "normal")
+        main.tree.focus_set()
+        
+    except: pass
     
 
 def openTypes():
@@ -120,40 +143,47 @@ def openTypes():
         types = tkFileDialog.askopenfilename(parent = root)
         n.updateTypes(str(types))
         i = 0.0
-        for node in n.tree.values():
-            if node.name in n.leaves:
-                f1S.tree.item(node.name, values = (len(node.mutations), node.isSource(),'--','--','--', '--'))
-                f2S.tree.item(node.name, values = (len(node.mutations), node.isSource(),'--','--','--', '--'))
-            else:
-                f1 = n.fN(node.name, 1)
-                f2 = n.fN(node.name, 2)
-                f1S.tree.item(node.name, values = (len(node.mutations), node.isSource(), f1[0], f1[1], f1[2]))
-                f2S.tree.item(node.name, values = (len(node.mutations), node.isSource(), f2[0], f2[1], f2[2], n.f2plus(node.name)))
+        for node in n.nodes:
+            node = n.tree[node]
+            f1 = n.fN(node.name, 1)
+            f2 = n.fN(node.name, 2)
+            f1S.tree.item(node.name, values = (len(node.mutations), node.isSource(), f1[0], f1[1], f1[2]))
+            f2S.tree.item(node.name, values = (len(node.mutations), node.isSource(), f2[0], f2[1], f2[2], n.f2plus(node.name)))
             i += 1
-            sys.stdout.write('\rUpdating tree... %.2f%%' % ((i/(len(n.tree)))*100))
+            sys.stdout.write('\rUpdating tree... %.2f%%' % ((i/(len(n.nodes)))*100))
         print '\n'
-    except: print
+    except: pass
 
+        
 def exportNewick():
 
     save = tkFileDialog.asksaveasfilename(parent = root)
-    f = open(save, 'w')
-    f.write(n.Newick(None)); f.close()
+    try: f = open(save, 'w'); f.write(n.Newick(None)); f.close()
+    except: pass
 
-#exportmenu.add_command(label = "Export current table", command = exportCurrent)
-#exportmenu.add_command(label = "Export full table", command = exportAll)
-exportmenu.add_command(label = "Export tree (Newick)", command = exportNewick)
+def exportCurrent(): pass
+
+
+def exportAll(): pass
+    
+
+exportmenu.add_command(label = "Current table (CSV)", command = exportCurrent)
+exportmenu.add_command(label = "Full table (CSV)", command = exportAll)
+exportmenu.add_command(label = "Tree (Newick format)", command = exportNewick)
+
+viewmenu.insert_command(1, label = "Show/Hide leaves", command = toggleLeaves)
+viewmenu.entryconfig(1, state = "disabled")
 
 filemenu.add_command(label = "Open XML file", command = openXML)
 filemenu.insert_command(1, label = "Import node types", command = openTypes)
 filemenu.entryconfig(1, state = "disabled")
-
 filemenu.add_separator()
 filemenu.add_command(label = "Quit", command = root.destroy)
 
 menubar.add_cascade(label = "File", menu = filemenu)
+menubar.add_cascade(label = "View", menu = viewmenu)
 menubar.add_cascade(label = "Export", menu = exportmenu)
-menubar.entryconfig(2, state = "disabled")
+menubar.entryconfig(3, state = "disabled")
 
 root.config(menu = menubar)
 root.mainloop()

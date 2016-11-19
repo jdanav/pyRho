@@ -116,7 +116,7 @@ class Tree:
                 string = ',' + self.Newick(child, string)
             string = '(' + string[1:]
         else:
-            string = '%s:%s' % (node, len(self.tree[node].mutations)) + string
+            string = '%s' % (node) + string
             if self.tree[node].children == []: return string
             string = ')' + string
             for child in self.tree[node].children:
