@@ -3,13 +3,14 @@
 
 from Tkinter import *
 from tree import *
-import ttk, tkFileDialog
+from random import randint
+import ttk, tkFileDialog, tkSimpleDialog
 
 
 root = Tk()
 root.title("0.66")
 root.iconbitmap(default = 'favicon.ico')
-root.label = ttk.Label(root, text = '%s nodes and %s leaves in %s layers' % (0,0,0))
+root.label = ttk.Label(root, text = '--')
 root.label.pack(side = BOTTOM, anchor = 'w')
 
 menubar = Menu(root)
@@ -97,8 +98,7 @@ def openXML():
 
         for frame in [main, f1S, f2S]:
             frame.tree.heading("#0",text = "File path:\t%s" % filename, anchor = 'w')
-            frame.tree.delete('None')
-            frame.tree.insert('',0,'None', open = True)
+            frame.tree.delete('None'); frame.tree.insert('',0,'None', open = True)
             visible = 1            
         root.label['text'] = '%s nodes and %s leaves in %s layers' % (len(n.nodes), len(n.leaves), len(n.layers))
 
@@ -117,15 +117,13 @@ def openXML():
                 f1S.tree.insert(str(node.parent),'end', iid = node.name, text = node.name, tags = ('node'), values = (len(node.mutations), '--', f1[0], f1[1], f1[2]), open = True)
                 f2S.tree.insert(str(node.parent),'end', iid = node.name, text = node.name, tags = ('node'), values = (len(node.mutations), '--', f2[0], f2[1], f2[2], n.f2plus(node.name)), open = True)
             i += 1
-            sys.stdout.write('\rPopulating tree... %.2f%%' % (float(i)/len(n.tree)*100))
-        print '\n'
-        filemenu.entryconfig(1, state = "normal")
-        filemenu.entryconfig(3, state = "normal")
-        filemenu.entryconfig(4, state = "normal")
+            sys.stdout.write('\rPopulating tree... %s/%s' % (i, len(n.tree)))
+        sys.stdout.write('')
+        for i in [1,4,5]: filemenu.entryconfig(i, state = "normal")
         menubar.entryconfig(2, state = "normal")
         main.tree.focus_set()
         
-    except: pass
+    except: sys.stdout.write('')
     
 
 def openTypes():
@@ -134,7 +132,7 @@ def openTypes():
         global n
         types = tkFileDialog.askopenfilename(parent = root, filetypes = [('text files', '.txt'), ('all files', '.*')])
         n.updateTypes(str(types))
-        i = 0.0
+        i = 0
         for node in n.tree:
             node = n.tree[node]
             f1 = n.fN(node.name, 1)
@@ -142,9 +140,9 @@ def openTypes():
             f1S.tree.item(node.name, values = (len(node.mutations), node.isSource(), f1[0], f1[1], f1[2]))
             f2S.tree.item(node.name, values = (len(node.mutations), node.isSource(), f2[0], f2[1], f2[2], n.f2plus(node.name)))
             i += 1
-            sys.stdout.write('\rUpdating tree... %.2f%%' % ((i/(len(n.tree)))*100))
-        print '\n'
-    except: pass
+            sys.stdout.write('\rUpdating tree... %s/%s' % (i, len(n.tree)))
+        sys.stdout.write('')
+    except: sys.stdout.write('\n')
 
         
 def exportNewick():
@@ -153,6 +151,7 @@ def exportNewick():
     save = tkFileDialog.asksaveasfilename(parent = root, initialfile = "%s_newick.txt" % n.root.name)
     try: f = open(save, 'w'); f.write(n.Newick(None)); f.close()
     except: pass
+
 
 def saveTable():
 
@@ -182,7 +181,7 @@ def saveTable():
                 f.write('\n' + '\t'.join(w))
         f.close()
         sys.stdout.write('%s successfully created\n' % (save))
-    except: pass
+    except: sys.stdout.write('')
     
             
 def saveAll():
@@ -197,20 +196,56 @@ def saveAll():
             f.write('\n' + '\t'.join(w))
         f.close()
         sys.stdout.write('%s successfully created\n' % (save))
-    except: pass
-    
+    except: sys.stdout.write('')
 
+    
+def genXML():
+
+    try:
+        maxnodes = tkSimpleDialog.askinteger(parent = root, title = 'Maximum number of nodes', prompt = 'Input an integer greater than one')
+        if maxnodes < 2: return
+        filename = tkFileDialog.asksaveasfilename(parent = root, initialfile = "autogen.xml")
+        closes = 1; nodes = 1
+        f = open(filename, 'w')
+        last = '<Node Id="NoLabel" HG="%s">\n' % ','.join(['x' for i in range(randint(0,12))])
+        f.write(last)
+        subtree = True
+        while nodes < (maxnodes - 1):
+            nl = randint(-1000,1000) if closes > (sqrt(maxnodes)*0.75) and last[-3] == '/' \
+                 else (randint(-2,1) if last[-3] == '"' \
+                       else (randint(-2,6) if closes > 1 \
+                             else 1))
+            if nl <= 0:
+                last = '\t' * closes + '<Node Id="NoLabel" HG="%s" />\n' % ','.join(['x' for i in range(randint(0,6))])
+                nodes += 1
+            elif nl in [1,2,3]:
+                last = '\t' * closes + '<Node Id="NoLabel" HG="%s">\n' % ','.join(['x' for i in range(randint(0,6))])
+                closes += 1; nodes += 1
+            else:
+                closes -= 1
+                last = '\t' * closes + '</Node>\n'
+            f.write(last)
+        if last[-3] == '"':
+            f.write('\t' * closes + '<Node Id="NoLabel" HG="%s" />\n' % ','.join(['x' for i in range(randint(0,6))]))
+        while closes > 0:
+            f.write('\t' * (closes-1) + '</Node>\n')
+            closes -= 1
+        f.close()
+    except: sys.stdout.write('')
+
+    
 optmenu.add_command(label = "Export tree (Newick format)", command = exportNewick)
 optmenu.add_command(label = "Show/Hide leaves", command = toggleLeaves)
 
 filemenu.add_command(label = "Open XML file", command = openXML)
 filemenu.add_command(label = "Import node types", command = openTypes)
+filemenu.add_command(label = "Generate random tree", command = genXML)
 filemenu.entryconfig(1, state = "disabled")
 filemenu.add_separator()
 filemenu.add_command(label = "Save current table (TSV)", command = saveTable) 
 filemenu.add_command(label = "Save all (TSV)", command = saveAll) 
-filemenu.entryconfig(3, state = "disabled")
 filemenu.entryconfig(4, state = "disabled")
+filemenu.entryconfig(5, state = "disabled")
 filemenu.add_separator()
 filemenu.add_command(label = "Quit", command = root.destroy)
 

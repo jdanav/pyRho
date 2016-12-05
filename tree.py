@@ -27,8 +27,9 @@ class Tree:
             layers, l = ddict(list), 1
             layers[0] = None
             F = f.readlines(); f.close()
-            for i in range(len(F)):
-                sys.stdout.write('\rLoading XML... %.2f%%' % (((i + 1.0)/len(F))*100))
+            Fl = len(F)
+            for i in range(Fl):
+                sys.stdout.write('\rLoading file... %s/%s' % (i+1, Fl))
                 match = re.search('Id=(.*) HG=(.*)>', F[i])
                 if "/Node" in F[i]: l -= 1
                 elif match is None: pass
@@ -49,9 +50,9 @@ class Tree:
                     else: self.leaves.append(node.name)
                     for x in layers.values()[1:l+1]:
                         if node.layer > self.tree[x].layer: self.subtrees[x][node.name] = copy(node)
-            print 
+            sys.stdout.write('\n') 
             
-        else: print "Invalid input"; return ''
+        else: sys.stdout.write('\n')
 
 
     def updateSubs(self, j, c):
@@ -59,7 +60,7 @@ class Tree:
         for sub in self.subtrees.values(): 
             for k in sub.keys(): sub[k] = copy(self.tree[k])
             j += 1
-            sys.stdout.write('\rUpdating types... %.2f%%' % ((j/(c + len(self.tree) + len(self.subtrees))*100)))
+            sys.stdout.write('\rUpdating types... %s/%s' % (j,(c + len(self.tree) + len(self.subtrees))))
 
 
     def updateTypes(self, types = ''):
@@ -70,7 +71,7 @@ class Tree:
             f = open(types, 'r')
             codes = f.readlines()
             f.close()
-            j = 0.0
+            j = 0
             for line in codes:
                 line = line.strip('\n').split('\t')
                 if line[0] in self.leaves:
@@ -81,10 +82,10 @@ class Tree:
                         leaf.type = [1,0,0,0] if leaf.mutations != [] else [0,1,0,0]
                     else: leaf.type = [0,0,0,1]
                 j += 1
-                sys.stdout.write('\rUpdating types... %.2f%%' % ((j/(len(codes) + len(self.tree) + len(self.subtrees))*100)))
+                sys.stdout.write('\rUpdating types... %s/%s' % (j,(len(codes) + len(self.tree) + len(self.subtrees))))
         self.updateNodes(j, len(codes))
         self.updateSubs(j + len(self.tree), len(codes))
-        print
+        sys.stdout.write('\n')
 
         
     def updateNodes(self, j, c):
@@ -104,7 +105,7 @@ class Tree:
                         self.tree[parent].type[2] += 1
                     else: self.tree[parent].type[3] += 1
                 j += 1
-                sys.stdout.write('\rUpdating types... %.2f%%' % ((j/(c + len(self.tree) + len(self.subtrees))*100)))
+                sys.stdout.write('\rUpdating types... %s/%s' % (j,(c + len(self.tree) + len(self.subtrees))))
                 
 
     def Newick(self, node, string = ''):
@@ -135,7 +136,7 @@ class Tree:
                 mutCount += self.mutationCount(root, leaf)
             rho = float(mutCount)/ len((set(sub.keys()) & set(self.leaves)))
             self.tree[root].extra['Rho'] = rho
-            return rho
+            return round(rho, 3)
             
 
     def mutationCount(self, root, node, mutCount = 0):
@@ -158,7 +159,7 @@ class Tree:
 
         rho = self.Rho(node, self.subtrees[node])
         age = (exp(-exp(-0.0263 *(rho + 40.2789))) *rho *3624)
-        return age
+        return round(age, 3)
 
 
     def StErr(self, sub, f = False):
@@ -175,7 +176,7 @@ class Tree:
             tSum += len(self.tree[nd].mutations) * len(lv) **2
         se = sqrt(tSum/(len(leaves)**2))
         if not f: sub.values()[0].extra['SE'] = se
-        return se
+        return round(se, 3)
 
 
     def ConfidenceInterval(self, node):
@@ -184,7 +185,7 @@ class Tree:
         se = self.StErr(self.subtrees[node])
         lower = max(exp(-exp(-0.0263 * ((rho - (1.96 * se)) + 40.2789))) * (rho - (1.96 * se)) * 3624.0, 0)
         upper = exp(-exp(-0.0263 * ((rho + (1.96 * se)) + 40.2789))) * (rho + (1.96 * se)) * 3624.0;
-        return lower, upper
+        return round(lower, 3), round(upper, 3)
 
 
     def fN(self, node, N = 1):
@@ -224,3 +225,5 @@ class Tree:
             self.tree[node].extra['f2+'] = True
         else: self.tree[node].extra['f2+'] = False
         return self.tree[node].extra['f2+']
+
+
