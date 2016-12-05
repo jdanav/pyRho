@@ -3,7 +3,7 @@
 import re, sys
 from collections import defaultdict as ddict, OrderedDict as odict
 from copy import copy
-rom math import sqrt, exp
+from math import sqrt, exp
 
 
 class Node:
