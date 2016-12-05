@@ -3,7 +3,6 @@
 
 from Tkinter import *
 from tree import *
-from random import randint
 import ttk, tkFileDialog, tkSimpleDialog
 
 
@@ -118,12 +117,12 @@ def openXML():
                 f2S.tree.insert(str(node.parent),'end', iid = node.name, text = node.name, tags = ('node'), values = (len(node.mutations), '--', f2[0], f2[1], f2[2], n.f2plus(node.name)), open = True)
             i += 1
             sys.stdout.write('\rPopulating tree... %s/%s' % (i, len(n.tree)))
-        sys.stdout.write('')
+        sys.stdout.write('\n')
         for i in [1,4,5]: filemenu.entryconfig(i, state = "normal")
         menubar.entryconfig(2, state = "normal")
         main.tree.focus_set()
         
-    except: sys.stdout.write('')
+    except: sys.stdout.write('\n')
     
 
 def openTypes():
@@ -141,7 +140,7 @@ def openTypes():
             f2S.tree.item(node.name, values = (len(node.mutations), node.isSource(), f2[0], f2[1], f2[2], n.f2plus(node.name)))
             i += 1
             sys.stdout.write('\rUpdating tree... %s/%s' % (i, len(n.tree)))
-        sys.stdout.write('')
+        sys.stdout.write('\n')
     except: sys.stdout.write('\n')
 
         
@@ -181,7 +180,7 @@ def saveTable():
                 f.write('\n' + '\t'.join(w))
         f.close()
         sys.stdout.write('%s successfully created\n' % (save))
-    except: sys.stdout.write('')
+    except: sys.stdout.write('\n')
     
             
 def saveAll():
@@ -196,7 +195,7 @@ def saveAll():
             f.write('\n' + '\t'.join(w))
         f.close()
         sys.stdout.write('%s successfully created\n' % (save))
-    except: sys.stdout.write('')
+    except: sys.stdout.write('\n')
 
     
 def genXML():
@@ -205,6 +204,7 @@ def genXML():
         maxnodes = tkSimpleDialog.askinteger(parent = root, title = 'Maximum number of nodes', prompt = 'Input an integer greater than one')
         if maxnodes < 2: return
         filename = tkFileDialog.asksaveasfilename(parent = root, initialfile = "autogen.xml")
+        from random import randint
         closes = 1; nodes = 1
         f = open(filename, 'w')
         last = '<Node Id="NoLabel" HG="%s">\n' % ','.join(['x' for i in range(randint(0,12))])
@@ -231,7 +231,7 @@ def genXML():
             f.write('\t' * (closes-1) + '</Node>\n')
             closes -= 1
         f.close()
-    except: sys.stdout.write('')
+    except: sys.stdout.write('\n')
 
     
 optmenu.add_command(label = "Export tree (Newick format)", command = exportNewick)
