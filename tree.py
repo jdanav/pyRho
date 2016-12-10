@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+'''''''''''''''''''''''''''''''''
+!!! review f2/f2plus criteria !!!
+'''''''''''''''''''''''''''''''''
+
 import re, sys
 from collections import defaultdict as ddict, OrderedDict as odict
 from copy import copy
@@ -41,6 +45,7 @@ class Tree:
         self.subtrees = {}         
         self.buildTree(source)
         self.root = self.tree.values()[0]
+
 
     def buildTree(self, source):
 
@@ -107,6 +112,11 @@ class Tree:
                 sys.stdout.write('\rUpdating types... %s/%s' % (j,(len(codes) + len(self.tree) + len(self.subtrees))))
         self.updateNodes(j, len(codes))
         self.updateSubs(j + len(self.tree), len(codes))
+        self.nsrc, self.nsnk, self.nudf = 0, 0, 0
+        for i in self.leaves:
+            if self.tree[i].isSource() == "Source": self.nsrc += 1
+            elif self.tree[i].isSource() == "Sink": self.nsnk += 1
+            else: self.nudf += 1
         sys.stdout.write('\n')
 
         
@@ -123,7 +133,7 @@ class Tree:
                 elif node in self.nodes:
                     if self.tree[node].type[:2] > [0,0]:
                         self.tree[parent].type[0] += 1
-                    elif self.tree[node].type[2] >= 1:
+                    if self.tree[node].type[2] >= 1:    #elif
                         self.tree[parent].type[2] += 1
                     else: self.tree[parent].type[3] += 1
                 j += 1
@@ -230,7 +240,7 @@ class Tree:
         sub = copy(self.subtrees[node])
         for i in range(len(sub)-1, 0, -1):
             tp = sub.values()[i].type
-            if tp[0] > (N-1) or tp[1] > (N-1) or sub.values()[i].isSource() in ["Source", "Undefined"]:
+            if tp[0] > (N-1) or sub.values()[i].isSource() in ["Source", "Undefined"]: #or tp[1] > (N-1)
                 sub = self.removeNode(sub, sub.keys()[i])
         leaves = set(sub.keys()) & set(self.leaves)
         if len(leaves) == 0: return [0,'--','--']

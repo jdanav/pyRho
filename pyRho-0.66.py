@@ -121,7 +121,6 @@ def openXML():
         for i in [1,4,5]: filemenu.entryconfig(i, state = "normal")
         menubar.entryconfig(2, state = "normal")
         main.tree.focus_set()
-        
     except: sys.stdout.write('\n')
     
 
@@ -141,6 +140,7 @@ def openTypes():
             i += 1
             sys.stdout.write('\rUpdating tree... %s/%s' % (i, len(n.tree)))
         sys.stdout.write('\n')
+        root.label['text'] = '%s nodes and %s leaves in %s layers (%s sources and %s sinks, %s undefined)' % (len(n.nodes), len(n.leaves), len(n.layers), n.nsrc, n.nsnk, n.nudf)
     except: sys.stdout.write('\n')
 
         
@@ -167,13 +167,13 @@ def saveTable():
                 w = [node] + [str(i) for i in main.tree.item(node)['values'][1:]]
                 f.write('\n' + '\t'.join(w))
         elif current == f1S.tree:
-            header = header[0] + header[6:9]
+            header = [header[0]] + header[6:9]
             f.write('\t'.join(header))
             for node in n.nodes:
                 w = [node] + [str(i) for i in f1S.tree.item(node)['values'][2:]]
                 f.write('\n' + '\t'.join(w))
         else:
-            header = header[0] + header[9:]
+            header = [header[0]] + header[9:]
             f.write('\t'.join(header))
             for node in n.nodes:
                 w = [node] + [str(i) for i in f2S.tree.item(node)['values'][2:]]
@@ -201,7 +201,7 @@ def saveAll():
 def genXML():
 
     try:
-        maxnodes = tkSimpleDialog.askinteger(parent = root, title = 'Maximum number of nodes', prompt = 'Input an integer greater than one')
+        maxnodes = tkSimpleDialog.askinteger(parent = root, title = 'Number of nodes', prompt = 'Input an integer greater than one')
         if maxnodes < 2: return
         filename = tkFileDialog.asksaveasfilename(parent = root, initialfile = "autogen.xml")
         from random import randint
