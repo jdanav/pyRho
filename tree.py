@@ -42,10 +42,10 @@ class Tree:
         self.leaves = []
         self.layers = odict()
         self.noLabel = 0
-        self.subtrees = {}         
+        self.subtrees = {}
+        self.viable = 0
         self.buildTree(source)
         self.root = self.tree.values()[0]
-
 
     def buildTree(self, source):
 
@@ -65,6 +65,7 @@ class Tree:
                     if node.name == "NoLabel":
                         self.noLabel += 1
                         node.name = node.name + "_%s" % self.noLabel
+                    if node.name in self.tree: sys.stdout.write('\nWarning! Multiple copies of %s' % node.name); return
                     self.tree[node.name] = node
                     if l >= 2: self.tree[layers[l-1]].children.append(node.name)
                     if not node.layer in self.layers:
@@ -77,8 +78,8 @@ class Tree:
                     else: self.leaves.append(node.name)
                     for x in layers.values()[1:l+1]:
                         if node.layer > self.tree[x].layer: self.subtrees[x][node.name] = copy(node)
-            sys.stdout.write('\n') 
-            
+            self.viable = 1
+            sys.stdout.write('\n')
         else: sys.stdout.write('\n')
 
 

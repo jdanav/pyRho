@@ -29,6 +29,7 @@ visible = 1
 
 n = None
 
+
 def getItem(a):
     
     w = root.nametowidget(root.focus_get())
@@ -94,7 +95,7 @@ def openXML():
         global n, visible, filemenu, menubar
         filename = tkFileDialog.askopenfilename(parent = root, filetypes = [('XML files', '.xml'), ('all files', '.*')])
         n = Tree(str(filename))
-
+        if n.viable != 1: return
         for frame in [main, f1S, f2S]:
             frame.tree.heading("#0",text = "File path:\t%s" % filename, anchor = 'w')
             frame.tree.delete('None'); frame.tree.insert('',0,'None', open = True)
@@ -103,7 +104,6 @@ def openXML():
 
         i = 0
         for node in n.tree.values():
-
             if node.name in n.leaves:
                 main.tree.insert(node.parent,'end', iid = node.name, text = node.name, tags = ('leaf'), values = (len(node.mutations), '--','--','--','--','--'))
                 f1S.tree.insert(node.parent,'end', iid = node.name, text = node.name, tags = ('leaf'), values = (len(node.mutations), node.isSource(),'--','--','--'))
@@ -118,7 +118,7 @@ def openXML():
             i += 1
             sys.stdout.write('\rPopulating tree... %s/%s' % (i, len(n.tree)))
         sys.stdout.write('\n')
-        for i in [1,4,5]: filemenu.entryconfig(i, state = "normal")
+        for i in [1,4,5,6]: filemenu.entryconfig(i, state = "normal")
         menubar.entryconfig(2, state = "normal")
         main.tree.focus_set()
     except: sys.stdout.write('\n')
@@ -236,15 +236,16 @@ def genXML():
         
 def findNode():
 
+    global n, visible
     current = root.nametowidget(root.focus_get())
     try:
         nid = tkSimpleDialog.askstring(parent = root, title = 'Select node', prompt = 'Input a valid Node ID')
+        if nid in n.leaves and visible == 0: nid = n.tree[nid].parent
         current.see(nid)
         current.selection_set(nid)
     except: pass
 
 
-optmenu.add_command(label = "Export tree (Newick format)", command = exportNewick)
 optmenu.add_command(label = "Show/Hide leaves", command = toggleLeaves)
 optmenu.add_command(label = "Find node", command = findNode)
 
@@ -253,10 +254,12 @@ filemenu.add_command(label = "Import node types", command = openTypes)
 filemenu.add_command(label = "Generate random tree", command = genXML)
 filemenu.entryconfig(1, state = "disabled")
 filemenu.add_separator()
+filemenu.add_command(label = "Export tree (Newick format)", command = exportNewick)
 filemenu.add_command(label = "Save current table (TSV)", command = saveTable) 
 filemenu.add_command(label = "Save all (TSV)", command = saveAll) 
 filemenu.entryconfig(4, state = "disabled")
 filemenu.entryconfig(5, state = "disabled")
+filemenu.entryconfig(6, state = "disabled")
 filemenu.add_separator()
 filemenu.add_command(label = "Quit", command = root.destroy)
 
