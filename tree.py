@@ -228,12 +228,12 @@ class Tree:
             if t[0] >= N and t[2] > 0:
                 self.tree[node].extra['f1'] = True
                 return self.fStats(node, N)
-            else: return ['N/A','N/A','N/A']
+            else: return ['N/A','N/A','N/A'] if node in self.nodes else ['--','--','--']
         elif N == 2:
             if t[0] >= N:
                 self.tree[node].extra['f2'] = True                
                 return self.fStats(node, N)
-            else: return ['N/A','N/A','N/A']
+            else: return ['N/A','N/A','N/A'] if node in self.nodes else ['--','--','--']
 
         
     def fStats(self, node, N):

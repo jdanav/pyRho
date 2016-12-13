@@ -100,7 +100,7 @@ def openXML():
             frame.tree.heading("#0",text = "File path:\t%s" % filename, anchor = 'w')
             frame.tree.delete('None'); frame.tree.insert('',0,'None', open = True)
             visible = 1            
-        root.label['text'] = '%s nodes and %s leaves in %s layers' % (len(n.nodes), len(n.leaves), len(n.layers))
+        root.label['text'] = '%s internal nodes and %s leaves in %s layers' % (len(n.nodes), len(n.leaves), len(n.layers))
 
         i = 0
         for node in n.tree.values():
@@ -140,7 +140,7 @@ def openTypes():
             i += 1
             sys.stdout.write('\rUpdating tree... %s/%s' % (i, len(n.tree)))
         sys.stdout.write('\n')
-        root.label['text'] = '%s nodes and %s leaves in %s layers (%s sources and %s sinks, %s undefined)' % (len(n.nodes), len(n.leaves), len(n.layers), n.nsrc, n.nsnk, n.nudf)
+        root.label['text'] = '%s internal nodes and %s leaves in %s layers (%s sources and %s sinks, %s undefined)' % (len(n.nodes), len(n.leaves), len(n.layers), n.nsrc, n.nsnk, n.nudf)
     except: sys.stdout.write('\n')
 
         
