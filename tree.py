@@ -241,7 +241,7 @@ class Tree:
         sub = copy(self.subtrees[node])
         for i in range(len(sub)-1, 0, -1):
             tp = sub.values()[i].type
-            if tp[0] > (N-1) or sub.values()[i].isSource() in ["Source", "Undefined"]: #or tp[1] > (N-1)
+            if tp[0] > (N-1) or tp[1] > (N-1) or sub.values()[i].isSource() in ["Source", "Undefined"]: 
                 sub = self.removeNode(sub, sub.keys()[i])
         leaves = set(sub.keys()) & set(self.leaves)
         if len(leaves) == 0: return [0,'--','--']

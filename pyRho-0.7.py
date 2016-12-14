@@ -210,8 +210,8 @@ def genXML():
         last = '<Node Id="NoLabel" HG="%s">\n' % ','.join(['x' for i in range(randint(0,12))])
         f.write(last)
         subtree = True
-        while nodes < (maxnodes - 1):
-            nl = randint(-1000,1000) if closes > (sqrt(maxnodes)*0.75) and last[-3] == '/' \
+        while nodes < (maxnodes - 1): # closes > sqrt(maxnodes)*0.75
+            nl = randint(-5000,5000) if closes > 10 and last[-3] == '/' \
                  else (randint(-2,1) if last[-3] == '"' \
                        else (randint(-2,6) if closes > 1 \
                              else 1))
