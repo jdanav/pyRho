@@ -241,7 +241,7 @@ class Tree:
             if tp[0] > (N-1) or sub.values()[i].isSource() in ["Source", "Undefined"]: #or tp[1] > (N-1)
                 sub = self.removeNode(sub, sub.keys()[i])
         leaves = set(sub.keys()) & set(self.leaves)
-        if len(leaves) == 0: return [0,'--','--']
+        if len(leaves) == 0: self.tree[node].extra.pop('f%s' % N); return ['N/A','N/A','N/A']
         elif len(leaves) == 1: return [1,0,0]
         else:
             return len(leaves), self.Rho(node, sub, True), self.StErr(sub, True)
@@ -249,6 +249,7 @@ class Tree:
 
     def f2plus(self, node):
 
+        if node in self.leaves: return '--'
         parent  = self.tree[node].parent
         if parent == None: self.tree[node].extra['f2+'] = True
         elif 'f2' in self.tree[node].extra.keys() and 'f2' in self.tree[parent].extra.keys():
