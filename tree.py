@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 
-'''''''''''''''''''''''''''''''''
-!!! review f2/f2plus criteria !!!
-'''''''''''''''''''''''''''''''''
-
 import re, sys
 from collections import defaultdict as ddict, OrderedDict as odict
 from copy import copy
@@ -32,7 +28,7 @@ class Node:
         elif (t == [0,0,0,1] or t == [0,0,0,0]) and self.children == []: return "Undefined"
         else: return t
 
-        
+
 class Tree:
 
     def __init__(self, source):
@@ -85,7 +81,7 @@ class Tree:
 
     def updateSubs(self, j, c):
 
-        for sub in self.subtrees.values(): 
+        for sub in self.subtrees.values():
             for k in sub.keys(): sub[k] = copy(self.tree[k])
             j += 1
             sys.stdout.write('\rUpdating types... %s/%s' % (j,(c + len(self.tree) + len(self.subtrees))))
@@ -120,13 +116,13 @@ class Tree:
             else: self.nudf += 1
         sys.stdout.write('\n')
 
-        
+
     def updateNodes(self, j, c):
 
         for layer in range(len(self.layers), 1, -1):
             for node in self.layers[layer]:
                 parent = self.tree[node].parent
-                if node in self.leaves and self.tree[node].isSource() != "Undefined":                    
+                if node in self.leaves and self.tree[node].isSource() != "Undefined":
                     for i in range(4):
                         self.tree[parent].type[i] += self.tree[node].type[i]
                 elif node in self.leaves and self.tree[node].isSource() == "Undefined":
@@ -139,14 +135,14 @@ class Tree:
                     else: self.tree[parent].type[3] += 1
                 j += 1
                 sys.stdout.write('\rUpdating types... %s/%s' % (j,(c + len(self.tree) + len(self.subtrees))))
-                
+
 
     def Newick(self, node, string = ''):
 
         if node == None:
             children = self.layers[1]
             string = ')'
-            for child in children: 
+            for child in children:
                 string = ',' + self.Newick(child, string)
             string = '(' + string[1:]
         else:
@@ -157,7 +153,7 @@ class Tree:
                 string = ',' + self.Newick(child, string)
             string = '(' + string[1:]
         return string
-                
+
 
     def Rho(self, root, sub, f = False):
 
@@ -170,7 +166,7 @@ class Tree:
             rho = float(mutCount)/ len((set(sub.keys()) & set(self.leaves)))
             self.tree[root].extra['Rho'] = rho
             return round(rho, 3)
-            
+
 
     def mutationCount(self, root, node, mutCount = 0):
 
@@ -187,6 +183,7 @@ class Tree:
             if child in sub.keys(): sub = self.removeNode(sub, child)
         x = sub.pop(node)
         return sub
+
 
     def Age(self, node):
 
@@ -231,17 +228,17 @@ class Tree:
             else: return ['N/A','N/A','N/A'] if node in self.nodes else ['--','--','--']
         elif N == 2:
             if t[0] >= N:
-                self.tree[node].extra['f2'] = True                
+                self.tree[node].extra['f2'] = True
                 return self.fStats(node, N)
             else: return ['N/A','N/A','N/A'] if node in self.nodes else ['--','--','--']
 
-        
+
     def fStats(self, node, N):
 
         sub = copy(self.subtrees[node])
         for i in range(len(sub)-1, 0, -1):
             tp = sub.values()[i].type
-            if tp[0] > (N-1) or tp[1] > (N-1) or sub.values()[i].isSource() in ["Source", "Undefined"]: 
+            if tp[0] > (N-1) or sub.values()[i].isSource() in ["Source", "Undefined"]: #or tp[1] > (N-1)
                 sub = self.removeNode(sub, sub.keys()[i])
         leaves = set(sub.keys()) & set(self.leaves)
         if len(leaves) == 0: return [0,'--','--']
@@ -258,5 +255,3 @@ class Tree:
             self.tree[node].extra['f2+'] = True
         else: self.tree[node].extra['f2+'] = False
         return self.tree[node].extra['f2+']
-
-

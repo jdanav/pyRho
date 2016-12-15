@@ -9,7 +9,7 @@ import ttk, tkFileDialog, tkSimpleDialog
 root = Tk()
 root.title("0.7")
 root.iconbitmap(default = 'favicon.ico')
-root.label = ttk.Label(root, text = '--')
+root.label = ttk.Label(root, text = 'Ready')
 root.label.pack(side = BOTTOM, anchor = 'w')
 
 menubar = Menu(root)
@@ -31,7 +31,7 @@ n = None
 
 
 def getItem(a):
-    
+
     w = root.nametowidget(root.focus_get())
     root.clipboard_clear()
     root.clipboard_append(w.item(w.focus()))
@@ -39,9 +39,9 @@ def getItem(a):
 
 
 def toggleLeaves():
-    
+
     global visible
-    if visible: 
+    if visible:
         for frame in [main, f1S, f2S]:
             t = frame.tree; t.detach(*n.leaves)
         visible = 0
@@ -66,7 +66,7 @@ for frame in [main, f1S, f2S]:
     frame.scroll.pack(side = RIGHT, fill = BOTH)
     frame.tree.pack(fill = BOTH, expand = 1)
     frame.tree.tag_configure('leaf', background = '#ffffe0')
-     
+
 main.tree['columns'] = ('Mutations','Leaves', u'ρ (Rho)', 'SE', 'Age', 'Confidence interval')
 for column in main.tree['columns']:
     main.tree.heading(column, text=column, anchor = 'w')
@@ -83,23 +83,23 @@ for frame in [f1S,f2S]:
         frame.tree.column(column, width = 50, stretch = True)
     frame.tree.column('Type', width = 65)
     frame.tree.column('Mutations', width = 65)
-    
+
 nb.add(main, text = "Tree information")
 nb.add(f1S, text = "f1 statistics")
 nb.add(f2S, text = "f2 statistics")
 
-        
+
 def openXML():
 
     try:
         global n, visible, filemenu, menubar
         filename = tkFileDialog.askopenfilename(parent = root, filetypes = [('XML files', '.xml'), ('all files', '.*')])
-        n = Tree(str(filename))
+        n = Tree(filename.encode('utf-8'))
         if n.viable != 1: return
         for frame in [main, f1S, f2S]:
             frame.tree.heading("#0",text = "File path:\t%s" % filename, anchor = 'w')
             frame.tree.delete('None'); frame.tree.insert('',0,'None', open = True)
-            visible = 1            
+            visible = 1
         root.label['text'] = '%s internal nodes and %s leaves in %s layers' % (len(n.nodes), len(n.leaves), len(n.layers))
 
         i = 0
@@ -122,14 +122,14 @@ def openXML():
         menubar.entryconfig(2, state = "normal")
         main.tree.focus_set()
     except: sys.stdout.write('\n')
-    
+
 
 def openTypes():
 
     try:
         global n
         types = tkFileDialog.askopenfilename(parent = root, filetypes = [('text files', '.txt'), ('all files', '.*')])
-        n.updateTypes(str(types))
+        n.updateTypes(types.encode('utf-8'))
         i = 0
         for node in n.tree:
             node = n.tree[node]
@@ -143,7 +143,7 @@ def openTypes():
         root.label['text'] = '%s internal nodes and %s leaves in %s layers (%s sources and %s sinks, %s undefined)' % (len(n.nodes), len(n.leaves), len(n.layers), n.nsrc, n.nsnk, n.nudf)
     except: sys.stdout.write('\n')
 
-        
+
 def exportNewick():
 
     global n
@@ -164,25 +164,25 @@ def saveTable():
             header = header[:6]
             f.write('\t'.join(header))
             for node in n.nodes:
-                w = [node] + [str(i) for i in main.tree.item(node)['values'][1:]]
+                w = [node] + [i.encode('utf-8') for i in main.tree.item(node)['values'][1:]]
                 f.write('\n' + '\t'.join(w))
         elif current == f1S.tree:
             header = [header[0]] + header[6:9]
             f.write('\t'.join(header))
             for node in n.nodes:
-                w = [node] + [str(i) for i in f1S.tree.item(node)['values'][2:]]
+                w = [node] + [i.encode('utf-8') for i in f1S.tree.item(node)['values'][2:]]
                 f.write('\n' + '\t'.join(w))
         else:
             header = [header[0]] + header[9:]
             f.write('\t'.join(header))
             for node in n.nodes:
-                w = [node] + [str(i) for i in f2S.tree.item(node)['values'][2:]]
+                w = [node] + [i.encode('utf-8') for i in f2S.tree.item(node)['values'][2:]]
                 f.write('\n' + '\t'.join(w))
         f.close()
         sys.stdout.write('%s successfully created\n' % (save))
     except: sys.stdout.write('\n')
-    
-            
+
+
 def saveAll():
 
     global n
@@ -191,13 +191,13 @@ def saveAll():
         f = open(save,'w')
         f.write('\t'.join(['Node','Leaves','Rho','Standard error','Age','Confidence interval','f1 leaves','f1 Rho','f1 SE','f2 leaves','f2 Rho','f2 SE','f2+ eligible']))
         for node in n.nodes:
-            w = [node] + [str(i) for i in main.tree.item(node)['values'][1:]] + [str(i) for i in f1S.tree.item(node)['values'][2:]] + [str(i) for i in f2S.tree.item(node)['values'][2:]]
+            w = [node] + [i.encode('utf-8') for i in main.tree.item(node)['values'][1:]] + [i.encode('utf-8') for i in f1S.tree.item(node)['values'][2:]] + [i.encode('utf-8') for i in f2S.tree.item(node)['values'][2:]]
             f.write('\n' + '\t'.join(w))
         f.close()
         sys.stdout.write('%s successfully created\n' % (save))
     except: sys.stdout.write('\n')
 
-    
+
 def genXML():
 
     try:
@@ -209,7 +209,6 @@ def genXML():
         f = open(filename, 'w')
         last = '<Node Id="NoLabel" HG="%s">\n' % ','.join(['x' for i in range(randint(0,12))])
         f.write(last)
-        subtree = True
         while nodes < (maxnodes - 1): # closes > sqrt(maxnodes)*0.75
             nl = randint(-5000,5000) if closes > 10 and last[-3] == '/' \
                  else (randint(-2,1) if last[-3] == '"' \
@@ -233,7 +232,7 @@ def genXML():
         f.close()
     except: sys.stdout.write('\n')
 
-        
+
 def findNode():
 
     global n, visible
@@ -255,8 +254,8 @@ filemenu.add_command(label = "Generate random tree", command = genXML)
 filemenu.entryconfig(1, state = "disabled")
 filemenu.add_separator()
 filemenu.add_command(label = "Export tree (Newick format)", command = exportNewick)
-filemenu.add_command(label = "Save current table (TSV)", command = saveTable) 
-filemenu.add_command(label = "Save all (TSV)", command = saveAll) 
+filemenu.add_command(label = "Save current table (TSV)", command = saveTable)
+filemenu.add_command(label = "Save all (TSV)", command = saveAll)
 filemenu.entryconfig(4, state = "disabled")
 filemenu.entryconfig(5, state = "disabled")
 filemenu.entryconfig(6, state = "disabled")
