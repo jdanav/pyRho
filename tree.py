@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 
-'''''''''''''''''''''''''''''''''
-!!! review f2/f2plus criteria !!!
-'''''''''''''''''''''''''''''''''
-
 import re, sys
 from collections import defaultdict as ddict, OrderedDict as odict
 from copy import copy
@@ -32,7 +28,7 @@ class Node:
         elif (t == [0,0,0,1] or t == [0,0,0,0]) and self.children == []: return "Undefined"
         else: return t
 
-        
+
 class Tree:
 
     def __init__(self, source):
@@ -42,10 +38,10 @@ class Tree:
         self.leaves = []
         self.layers = odict()
         self.noLabel = 0
-        self.subtrees = {}         
+        self.subtrees = {}
+        self.viable = 0
         self.buildTree(source)
         self.root = self.tree.values()[0]
-
 
     def buildTree(self, source):
 
@@ -65,6 +61,7 @@ class Tree:
                     if node.name == "NoLabel":
                         self.noLabel += 1
                         node.name = node.name + "_%s" % self.noLabel
+                    if node.name in self.tree: sys.stdout.write('\nWarning! Multiple copies of %s' % node.name); return
                     self.tree[node.name] = node
                     if l >= 2: self.tree[layers[l-1]].children.append(node.name)
                     if not node.layer in self.layers:
@@ -77,14 +74,14 @@ class Tree:
                     else: self.leaves.append(node.name)
                     for x in layers.values()[1:l+1]:
                         if node.layer > self.tree[x].layer: self.subtrees[x][node.name] = copy(node)
-            sys.stdout.write('\n') 
-            
+            self.viable = 1
+            sys.stdout.write('\n')
         else: sys.stdout.write('\n')
 
 
     def updateSubs(self, j, c):
 
-        for sub in self.subtrees.values(): 
+        for sub in self.subtrees.values():
             for k in sub.keys(): sub[k] = copy(self.tree[k])
             j += 1
             sys.stdout.write('\rUpdating types... %s/%s' % (j,(c + len(self.tree) + len(self.subtrees))))
@@ -119,13 +116,13 @@ class Tree:
             else: self.nudf += 1
         sys.stdout.write('\n')
 
-        
+
     def updateNodes(self, j, c):
 
         for layer in range(len(self.layers), 1, -1):
             for node in self.layers[layer]:
                 parent = self.tree[node].parent
-                if node in self.leaves and self.tree[node].isSource() != "Undefined":                    
+                if node in self.leaves and self.tree[node].isSource() != "Undefined":
                     for i in range(4):
                         self.tree[parent].type[i] += self.tree[node].type[i]
                 elif node in self.leaves and self.tree[node].isSource() == "Undefined":
@@ -138,14 +135,14 @@ class Tree:
                     else: self.tree[parent].type[3] += 1
                 j += 1
                 sys.stdout.write('\rUpdating types... %s/%s' % (j,(c + len(self.tree) + len(self.subtrees))))
-                
+
 
     def Newick(self, node, string = ''):
 
         if node == None:
             children = self.layers[1]
             string = ')'
-            for child in children: 
+            for child in children:
                 string = ',' + self.Newick(child, string)
             string = '(' + string[1:]
         else:
@@ -156,7 +153,7 @@ class Tree:
                 string = ',' + self.Newick(child, string)
             string = '(' + string[1:]
         return string
-                
+
 
     def Rho(self, root, sub, f = False):
 
@@ -169,7 +166,7 @@ class Tree:
             rho = float(mutCount)/ len((set(sub.keys()) & set(self.leaves)))
             self.tree[root].extra['Rho'] = rho
             return round(rho, 3)
-            
+
 
     def mutationCount(self, root, node, mutCount = 0):
 
@@ -186,6 +183,7 @@ class Tree:
             if child in sub.keys(): sub = self.removeNode(sub, child)
         x = sub.pop(node)
         return sub
+
 
     def Age(self, node):
 
@@ -227,14 +225,14 @@ class Tree:
             if t[0] >= N and t[2] > 0:
                 self.tree[node].extra['f1'] = True
                 return self.fStats(node, N)
-            else: return ['N/A','N/A','N/A']
+            else: return ['N/A','N/A','N/A'] if node in self.nodes else ['--','--','--']
         elif N == 2:
             if t[0] >= N:
-                self.tree[node].extra['f2'] = True                
+                self.tree[node].extra['f2'] = True
                 return self.fStats(node, N)
-            else: return ['N/A','N/A','N/A']
+            else: return ['N/A','N/A','N/A'] if node in self.nodes else ['--','--','--']
 
-        
+
     def fStats(self, node, N):
 
         sub = copy(self.subtrees[node])
@@ -243,7 +241,7 @@ class Tree:
             if tp[0] > (N-1) or sub.values()[i].isSource() in ["Source", "Undefined"]: #or tp[1] > (N-1)
                 sub = self.removeNode(sub, sub.keys()[i])
         leaves = set(sub.keys()) & set(self.leaves)
-        if len(leaves) == 0: return [0,'--','--']
+        if len(leaves) == 0: self.tree[node].extra.pop('f%s' % N); return ['N/A','N/A','N/A']
         elif len(leaves) == 1: return [1,0,0]
         else:
             return len(leaves), self.Rho(node, sub, True), self.StErr(sub, True)
@@ -251,11 +249,10 @@ class Tree:
 
     def f2plus(self, node):
 
+        if node in self.leaves: return '--'
         parent  = self.tree[node].parent
         if parent == None: self.tree[node].extra['f2+'] = True
         elif 'f2' in self.tree[node].extra.keys() and 'f2' in self.tree[parent].extra.keys():
             self.tree[node].extra['f2+'] = True
         else: self.tree[node].extra['f2+'] = False
         return self.tree[node].extra['f2+']
-
-
