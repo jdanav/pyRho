@@ -43,6 +43,7 @@ class Tree:
         self.buildTree(source)
         self.root = self.tree.values()[0]
 
+
     def buildTree(self, source):
 
         if type(source) == str:

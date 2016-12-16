@@ -18,6 +18,7 @@ filemenu = Menu(menubar, tearoff = 0)
 exportmenu = Menu(menubar, tearoff = 0)
 optmenu = Menu(menubar, tearoff = 0)
 nb = ttk.Notebook(root)
+
 nb.enable_traversal()
 nb.pack(fill = BOTH, expand = 1)
 
