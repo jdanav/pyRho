@@ -5,7 +5,6 @@ from Tkinter import *
 from tree import *
 import ttk, tkFileDialog, tkSimpleDialog
 
-
 root = Tk()
 root.title("0.7")
 root.iconbitmap(default = 'favicon.ico')
@@ -165,19 +164,19 @@ def saveTable():
             header = header[:6]
             f.write('\t'.join(header))
             for node in n.nodes:
-                w = [node] + [i.encode('utf-8') for i in main.tree.item(node)['values'][1:]]
+                w = [node] + [str(i) for i in main.tree.item(node)['values'][1:]]
                 f.write('\n' + '\t'.join(w))
         elif current == f1S.tree:
             header = [header[0]] + header[6:9]
             f.write('\t'.join(header))
             for node in n.nodes:
-                w = [node] + [i.encode('utf-8') for i in f1S.tree.item(node)['values'][2:]]
+                w = [node] + [str(i) for i in f1S.tree.item(node)['values'][2:]]
                 f.write('\n' + '\t'.join(w))
         else:
             header = [header[0]] + header[9:]
             f.write('\t'.join(header))
             for node in n.nodes:
-                w = [node] + [i.encode('utf-8') for i in f2S.tree.item(node)['values'][2:]]
+                w = [node] + [str(i) for i in f2S.tree.item(node)['values'][2:]]
                 f.write('\n' + '\t'.join(w))
         f.close()
         sys.stdout.write('%s successfully created\n' % (save))
@@ -192,7 +191,7 @@ def saveAll():
         f = open(save,'w')
         f.write('\t'.join(['Node','Leaves','Rho','Standard error','Age','Confidence interval','f1 leaves','f1 Rho','f1 SE','f2 leaves','f2 Rho','f2 SE','f2+ eligible']))
         for node in n.nodes:
-            w = [node] + [i.encode('utf-8') for i in main.tree.item(node)['values'][1:]] + [i.encode('utf-8') for i in f1S.tree.item(node)['values'][2:]] + [i.encode('utf-8') for i in f2S.tree.item(node)['values'][2:]]
+            w = [node] + [str(i) for i in main.tree.item(node)['values'][1:]] + [str(i) for i in f1S.tree.item(node)['values'][2:]] + [str(i) for i in f2S.tree.item(node)['values'][2:]]
             f.write('\n' + '\t'.join(w))
         f.close()
         sys.stdout.write('%s successfully created\n' % (save))

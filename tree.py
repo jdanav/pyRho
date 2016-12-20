@@ -3,7 +3,7 @@
 import re, sys
 from collections import defaultdict as ddict, OrderedDict as odict
 from copy import copy
-from math import sqrt, exp
+from math import sqrt, exp, log
 
 
 class Node:
@@ -242,10 +242,14 @@ class Tree:
             if tp[0] > (N-1) or sub.values()[i].isSource() in ["Source", "Undefined"]: #or tp[1] > (N-1)
                 sub = self.removeNode(sub, sub.keys()[i])
         leaves = set(sub.keys()) & set(self.leaves)
-        if len(leaves) == 0: self.tree[node].extra.pop('f%s' % N); return ['N/A','N/A','N/A']
-        elif len(leaves) == 1: return [1,0,0]
+        if len(leaves) == 0:
+            self.tree[node].extra.pop('f%s' % N)
+            return ['N/A','N/A','N/A']
+        elif len(leaves) == 1:
+            self.tree[node].extra['f%s' % N] = [1,0,0]
         else:
-            return len(leaves), self.Rho(node, sub, True), self.StErr(sub, True)
+            self.tree[node].extra['f%s' % N] = [len(leaves), self.Rho(node, sub, True), self.StErr(sub, True)]
+        return self.tree[node].extra['f%s' % N]
 
 
     def f2plus(self, node):
@@ -257,3 +261,16 @@ class Tree:
             self.tree[node].extra['f2+'] = True
         else: self.tree[node].extra['f2+'] = False
         return self.tree[node].extra['f2+']
+
+    def migrationProbs(self, migrations, mutationRate):
+
+        probabilities = odict()
+        probabilities[mutationRate] = migrations
+        for i in self.nodes:
+            node = self.tree[i]
+            if 'f1' in node.extra:
+                f1 = node.extra['f1']
+                vals = [exp(-f1[0] * (float(M)/mutationRate) - f1[1] * log(float(M)/mutationRate)) for M in migrations]
+                probs = [round(val/sum(vals),4) for val in vals]
+                probabilities[node.name] = probs
+        return probabilities
