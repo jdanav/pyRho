@@ -3,7 +3,7 @@
 
 from Tkinter import *
 from tree import *
-import ttk, tkFileDialog, tkSimpleDialog
+import ttk, tkFileDialog, tkSimpleDialog, tkMessageBox
 
 root = Tk()
 root.title("0.7")
@@ -24,10 +24,39 @@ nb.pack(fill = BOTH, expand = 1)
 main = Frame(nb)
 f1S = Frame(nb)
 f2S = Frame(nb)
+clust = Frame(nb)
 
 visible = 1
 
 n = None
+
+
+class rangeWindow(tkSimpleDialog.Dialog):
+
+    def body(self, master):
+        self.desc = Label(master, text = "Specify a valid range for the migration dates\n")
+        Label(master, text="Latest:").grid(row = 1)
+        Label(master, text="Earliest:").grid(row = 2)
+        Label(master, text="Migration every").grid(row = 3)
+        Label(master, text = " years").grid(row = 3,column = 2)
+
+        self.e1 = Entry(master, width = 8)
+        self.e2 = Entry(master, width = 8)
+        self.e3 = Entry(master, width = 8)
+        self.desc.grid(row = 0, columnspan = 3)
+        self.e1.grid(row = 1, column = 1)
+        self.e2.grid(row = 2, column = 1)
+        self.e3.grid(row = 3, column = 1)
+        self.e1.insert(0,'1')
+        self.e2.insert(0,'10000')
+        self.e3.insert(0,'1000')
+        return self.e1
+
+    def apply(self):
+        start = int(self.e1.get())
+        stop = int(self.e2.get())
+        step = int(self.e3.get())
+        self.range = range(start, stop+step, step)
 
 
 def getItem(a):
@@ -54,7 +83,7 @@ def toggleLeaves():
         visible = 1
 
 
-for frame in [main, f1S, f2S]:
+for frame in [main, f1S, f2S, clust]:
     frame.tree = ttk.Treeview(frame, height = 20);
     frame.tree.column("#0",minwidth = 350, width = 400)
     frame.scroll = ttk.Scrollbar(frame, orient = VERTICAL, command = frame.tree.yview)
@@ -68,25 +97,24 @@ for frame in [main, f1S, f2S]:
     frame.tree.tag_configure('leaf', background = '#ffffe0')
 
 main.tree['columns'] = ('Mutations','Leaves', u'ρ (Rho)', 'SE', 'Age', 'Confidence interval')
-for column in main.tree['columns']:
-    main.tree.heading(column, text=column, anchor = 'w')
-    main.tree.column(column, width = 50, stretch = True)
-main.tree.column('Age', width = 60)
-main.tree.column('Mutations', width = 65)
-main.tree.column('Confidence interval', width = 150)
-
 f1S.tree['columns'] = ('Mutations','Type','Leaves','f1','SE')
 f2S.tree['columns'] = ('Mutations','Type','Leaves','f2','SE', 'f2+')
-for frame in [f1S,f2S]:
+
+for frame in [main, f1S, f2S]:
     for column in frame.tree['columns']:
         frame.tree.heading(column, text = column, anchor = 'w')
         frame.tree.column(column, width = 50, stretch = True)
-    frame.tree.column('Type', width = 65)
     frame.tree.column('Mutations', width = 65)
+main.tree.column('Confidence interval', width = 150)
+main.tree.column('Age', width = 60)
+f1S.tree.column('Type', width = 65)
+f2S.tree.column('Type', width = 65)
+
 
 nb.add(main, text = "Tree information")
 nb.add(f1S, text = "f1 statistics")
 nb.add(f2S, text = "f2 statistics")
+nb.add(clust, text = 'Founder analysis', state = 'hidden')
 
 
 def openXML():
@@ -95,6 +123,7 @@ def openXML():
         global n, visible, filemenu, menubar
         filename = tkFileDialog.askopenfilename(parent = root, filetypes = [('XML files', '.xml'), ('all files', '.*')])
         n = Tree(filename.encode('utf-8'))
+        nb.tab(3, state = 'hidden')
         if n.viable != 1: return
         for frame in [main, f1S, f2S]:
             frame.tree.heading("#0",text = "File path:\t%s" % filename, anchor = 'w')
@@ -106,15 +135,9 @@ def openXML():
         for node in n.tree.values():
             if node.name in n.leaves:
                 main.tree.insert(node.parent,'end', iid = node.name, text = node.name, tags = ('leaf'), values = (len(node.mutations), '--','--','--','--','--'))
-                f1S.tree.insert(node.parent,'end', iid = node.name, text = node.name, tags = ('leaf'), values = (len(node.mutations), node.isSource(),'--','--','--'))
-                f2S.tree.insert(node.parent,'end', iid = node.name, text = node.name, tags = ('leaf'), values = (len(node.mutations), node.isSource(),'--','--','--', '--'))
             elif node.name in n.nodes:
                 xnode = n.subtrees[node.name]
-                f1 = n.fN(node.name, 1)
-                f2 = n.fN(node.name, 2)
                 main.tree.insert(str(node.parent),'end', iid = node.name, text = node.name, tags = ('node'), values = (len(node.mutations), len(set(xnode.keys()) & set (n.leaves)), n.Rho(node.name, xnode), n.StErr(xnode), n.Age(node.name), n.ConfidenceInterval(node.name)), open = True)
-                f1S.tree.insert(str(node.parent),'end', iid = node.name, text = node.name, tags = ('node'), values = (len(node.mutations), '--', f1[0], f1[1], f1[2]), open = True)
-                f2S.tree.insert(str(node.parent),'end', iid = node.name, text = node.name, tags = ('node'), values = (len(node.mutations), '--', f2[0], f2[1], f2[2], n.f2plus(node.name)), open = True)
             i += 1
             sys.stdout.write('\rPopulating tree... %s/%s' % (i, len(n.tree)))
         sys.stdout.write('\n')
@@ -135,11 +158,12 @@ def openTypes():
             node = n.tree[node]
             f1 = n.fN(node.name, 1)
             f2 = n.fN(node.name, 2)
-            f1S.tree.item(node.name, values = (len(node.mutations), node.isSource(), f1[0], f1[1], f1[2]))
-            f2S.tree.item(node.name, values = (len(node.mutations), node.isSource(), f2[0], f2[1], f2[2], n.f2plus(node.name)))
+            f1S.tree.insert(str(node.parent),'end', iid = node.name, text = node.name, tags = ('node' if node.name in n.nodes else 'leaf'), values = (len(node.mutations), node.isSource(), f1[0], f1[1], f1[2]), open = True)
+            f2S.tree.insert(str(node.parent),'end', iid = node.name, text = node.name, tags = ('node' if node.name in n.nodes else 'leaf'), values = (len(node.mutations), node.isSource(), f2[0], f2[1], f2[2], n.f2plus(node.name)), open = True)
             i += 1
             sys.stdout.write('\rUpdating tree... %s/%s' % (i, len(n.tree)))
         sys.stdout.write('\n')
+        optmenu.entryconfig(0, state = "normal")
         root.label['text'] = '%s internal nodes and %s leaves in %s layers (%s sources and %s sinks, %s undefined)' % (len(n.nodes), len(n.leaves), len(n.layers), n.nsrc, n.nsnk, n.nudf)
     except: sys.stdout.write('\n')
 
@@ -172,12 +196,20 @@ def saveTable():
             for node in n.nodes:
                 w = [node] + [str(i) for i in f1S.tree.item(node)['values'][2:]]
                 f.write('\n' + '\t'.join(w))
-        else:
+        elif current == f2S.tree:
             header = [header[0]] + header[9:]
             f.write('\t'.join(header))
             for node in n.nodes:
                 w = [node] + [str(i) for i in f2S.tree.item(node)['values'][2:]]
                 f.write('\n' + '\t'.join(w))
+        else:
+            f.write('Node ID\t')
+            header = clust.tree['columns']
+            f.write('\t'.join(header))
+            for node in n.nodes:
+                if clust.tree.exists(node):
+                    w = [node] + [str(i) for i in clust.tree.item(node)['values']]
+                    f.write('\n' + '\t'.join(w))
         f.close()
         sys.stdout.write('%s successfully created\n' % (save))
     except: sys.stdout.write('\n')
@@ -196,6 +228,36 @@ def saveAll():
         f.close()
         sys.stdout.write('%s successfully created\n' % (save))
     except: sys.stdout.write('\n')
+
+
+def calcMigrations():
+
+    rof = tkMessageBox.askyesno("Migration dates", "Would you like to specify a range?")
+    if rof == True:
+        try:
+            _ = Tk()
+            _.withdraw()
+            migrations = rangeWindow(_,title = "Migration dates").range
+        except: return
+    else:
+        try:
+            howmany = tkSimpleDialog.askinteger(parent = root, title = 'Migration dates', prompt = 'How many migrations?')
+            migrations = [tkSimpleDialog.askinteger(parent = root, title = 'Migration dates', prompt = 'Input date %s' % (i+1), initialvalue = '%s' % (i+1 * 1000)) for i in range(howmany)]
+        except: return
+    mutationRate = tkSimpleDialog.askfloat(parent = root, title = 'Mutation rate', prompt = 'Input the mutation rate', initialvalue = '1000')
+    probs = n.migrationProbs(migrations,mutationRate)
+    print probs
+    clust.tree.delete('None'); clust.tree.insert('',0,'None', open = True)
+    clust.tree.heading("#0",text = "Mutation rate: %s" % probs.keys()[0], anchor = 'w')
+    clust.scroll.pack(side = RIGHT, fill = BOTH)
+    clust.tree.pack(fill = BOTH, expand = 1)
+    clust.tree['columns'] = [str(i) for i in probs.values()[0]]
+    for column in clust.tree['columns']:
+        clust.tree.column(column, width = 50, stretch = True)
+        clust.tree.heading(column, text = column, anchor = 'w')
+    for item in probs.keys()[1:]:
+        clust.tree.insert('None','end', iid = item, text = item, values = [str(i) for i in probs[item]], open = True)
+    nb.tab(3, state = 'normal')
 
 
 def genXML():
@@ -245,8 +307,11 @@ def findNode():
     except: pass
 
 
+optmenu.add_command(label = "Compute migration clusters", command = calcMigrations)
+optmenu.add_separator()
 optmenu.add_command(label = "Show/Hide leaves", command = toggleLeaves)
 optmenu.add_command(label = "Find node", command = findNode)
+optmenu.entryconfig(0, state = "disabled")
 
 filemenu.add_command(label = "Open XML file", command = openXML)
 filemenu.add_command(label = "Import node types", command = openTypes)
