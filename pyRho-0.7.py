@@ -10,6 +10,8 @@ root.title("0.7")
 root.iconbitmap(default = 'favicon.ico')
 root.label = ttk.Label(root, text = 'Ready')
 root.label.pack(side = BOTTOM, anchor = 'w')
+root.geometry('850x490')
+root.minsize(850, 490)
 
 menubar = Menu(root)
 
@@ -96,6 +98,9 @@ for frame in [main, f1S, f2S, clust]:
     frame.tree.pack(fill = BOTH, expand = 1)
     frame.tree.tag_configure('leaf', background = '#ffffe0')
 
+clust.xscroll = ttk.Scrollbar(clust, orient = HORIZONTAL, command = clust.tree.xview)
+clust.tree.configure(xscrollcommand = clust.xscroll.set)
+
 main.tree['columns'] = ('Mutations','Leaves', u'ρ (Rho)', 'SE', 'Age', 'Confidence interval')
 f1S.tree['columns'] = ('Mutations','Type','Leaves','f1','SE')
 f2S.tree['columns'] = ('Mutations','Type','Leaves','f2','SE', 'f2+')
@@ -112,8 +117,8 @@ f2S.tree.column('Type', width = 65)
 
 
 nb.add(main, text = "Tree information")
-nb.add(f1S, text = "f1 statistics")
-nb.add(f2S, text = "f2 statistics")
+nb.add(f1S, text = "f1 statistics", state = 'hidden')
+nb.add(f2S, text = "f2 statistics", state = 'hidden')
 nb.add(clust, text = 'Founder analysis', state = 'hidden')
 
 
@@ -123,7 +128,7 @@ def openXML():
         global n, visible, filemenu, menubar
         filename = tkFileDialog.askopenfilename(parent = root, filetypes = [('XML files', '.xml'), ('all files', '.*')])
         n = Tree(filename.encode('utf-8'))
-        nb.tab(3, state = 'hidden')
+        for i in range(1,4): nb.tab(i, state = 'hidden')
         if n.viable != 1: return
         for frame in [main, f1S, f2S]:
             frame.tree.heading("#0",text = "File path:\t%s" % filename, anchor = 'w')
@@ -154,6 +159,8 @@ def openTypes():
         types = tkFileDialog.askopenfilename(parent = root, filetypes = [('text files', '.txt'), ('all files', '.*')])
         n.updateTypes(types.encode('utf-8'))
         i = 0
+        f1S.tree.delete('None'); f1S.tree.insert('',0,'None', open = True)
+        f2S.tree.delete('None'); f2S.tree.insert('',0,'None', open = True)
         for node in n.tree:
             node = n.tree[node]
             f1 = n.fN(node.name, 1)
@@ -165,6 +172,7 @@ def openTypes():
         sys.stdout.write('\n')
         optmenu.entryconfig(0, state = "normal")
         root.label['text'] = '%s internal nodes and %s leaves in %s layers (%s sources and %s sinks, %s undefined)' % (len(n.nodes), len(n.leaves), len(n.layers), n.nsrc, n.nsnk, n.nudf)
+        for i in range(1,3): nb.tab(i, state = 'normal')
     except: sys.stdout.write('\n')
 
 
@@ -242,15 +250,14 @@ def calcMigrations():
     else:
         try:
             howmany = tkSimpleDialog.askinteger(parent = root, title = 'Migration dates', prompt = 'How many migrations?')
-            migrations = [tkSimpleDialog.askinteger(parent = root, title = 'Migration dates', prompt = 'Input date %s' % (i+1), initialvalue = '%s' % (i+1 * 1000)) for i in range(howmany)]
+            migrations = [tkSimpleDialog.askinteger(parent = root, title = 'Migration dates', prompt = 'Input date %s' % (i+1), initialvalue = '%s' % ((i+1) * 1000)) for i in range(howmany)]
         except: return
     mutationRate = tkSimpleDialog.askfloat(parent = root, title = 'Mutation rate', prompt = 'Input the mutation rate', initialvalue = '1000')
     probs = n.migrationProbs(migrations,mutationRate)
-    print probs
     clust.tree.delete('None'); clust.tree.insert('',0,'None', open = True)
     clust.tree.heading("#0",text = "Mutation rate: %s" % probs.keys()[0], anchor = 'w')
     clust.scroll.pack(side = RIGHT, fill = BOTH)
-    clust.tree.pack(fill = BOTH, expand = 1)
+    clust.xscroll.pack(side = BOTTOM, fill = BOTH)
     clust.tree['columns'] = [str(i) for i in probs.values()[0]]
     for column in clust.tree['columns']:
         clust.tree.column(column, width = 50, stretch = True)
