@@ -74,14 +74,18 @@ def toggleLeaves():
     global visible
     if visible:
         for frame in [main, f1S, f2S]:
-            t = frame.tree; t.detach(*n.leaves)
+            try:
+                t = frame.tree; t.detach(*n.leaves)
+            except: pass
         visible = 0
     else:
         for frame in [main, f1S, f2S]:
-            t = frame.tree; t.detach(*n.leaves)
-            for item in n.leaves:
-                parent = n.tree[n.tree[item].parent]
-                t.reattach(item,parent.name,parent.children.index(item))
+            try:
+                t = frame.tree; t.detach(*n.leaves)
+                for item in n.leaves:
+                    parent = n.tree[n.tree[item].parent]
+                    t.reattach(item,parent.name,parent.children.index(item))
+            except: pass
         visible = 1
 
 
@@ -264,7 +268,10 @@ def calcMigrations():
     clust.xscroll.pack(side = BOTTOM, fill = BOTH)
     clust.tree['columns'] = [str(i) for i in probs.values()[0]]
     for column in clust.tree['columns']:
-        clust.tree.column(column, width = 50, stretch = True)
+        colwidth = int(clust.tree.winfo_width()) - int(clust.tree.column('#0')['width']) - 1
+        if len(clust.tree['columns']) * 50 <= colwidth:
+            clust.tree.column(column, width = colwidth/len(clust.tree['columns']), stretch = True)
+        else: clust.tree.column(column, width = 50, stretch = True)
         clust.tree.heading(column, text = column, anchor = 'w')
     for item in probs.keys()[1:]:
         clust.tree.insert('None','end', iid = item, text = item, values = [str(i) for i in probs[item]], open = True)
