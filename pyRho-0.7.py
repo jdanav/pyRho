@@ -117,9 +117,9 @@ f2S.tree.column('Type', width = 65)
 
 
 nb.add(main, text = "Tree information")
-nb.add(f1S, text = "f1 statistics", state = 'hidden')
-nb.add(f2S, text = "f2 statistics", state = 'hidden')
-nb.add(clust, text = 'Founder analysis', state = 'hidden')
+nb.add(f1S, text = "f1 statistics", state = 'disabled')
+nb.add(f2S, text = "f2 statistics", state = 'disabled')
+nb.add(clust, text = 'Founder analysis', state = 'disabled')
 
 
 def openXML():
@@ -128,7 +128,7 @@ def openXML():
         global n, visible, filemenu, menubar
         filename = tkFileDialog.askopenfilename(parent = root, filetypes = [('XML files', '.xml'), ('all files', '.*')])
         n = Tree(filename.encode('utf-8'))
-        for i in range(1,4): nb.tab(i, state = 'hidden')
+        for i in range(1,4): nb.tab(i, state = 'disabled')
         if n.viable != 1: return
         for frame in [main, f1S, f2S]:
             frame.tree.heading("#0",text = "File path:\t%s" % filename, anchor = 'w')
@@ -173,6 +173,7 @@ def openTypes():
         optmenu.entryconfig(0, state = "normal")
         root.label['text'] = '%s internal nodes and %s leaves in %s layers (%s sources and %s sinks, %s undefined)' % (len(n.nodes), len(n.leaves), len(n.layers), n.nsrc, n.nsnk, n.nudf)
         for i in range(1,3): nb.tab(i, state = 'normal')
+        nb.tab(3, state = 'disabled')
     except: sys.stdout.write('\n')
 
 
@@ -199,17 +200,20 @@ def saveTable():
                 w = [node] + [str(i) for i in main.tree.item(node)['values'][1:]]
                 f.write('\n' + '\t'.join(w))
         elif current == f1S.tree:
+            xna = tkMessageBox.askyesno("Save table", "Exclude non-candidate (N/A) nodes?")
             header = [header[0]] + header[6:9]
             f.write('\t'.join(header))
             for node in n.nodes:
                 w = [node] + [str(i) for i in f1S.tree.item(node)['values'][2:]]
-                f.write('\n' + '\t'.join(w))
+                if xna == True and 'N/A' in w: pass
+                else: f.write('\n' + '\t'.join(w))
         elif current == f2S.tree:
+            xna = tkMessageBox.askyesno("Save table", "Exclude non-candidate (N/A) nodes?")
             header = [header[0]] + header[9:]
             f.write('\t'.join(header))
             for node in n.nodes:
-                w = [node] + [str(i) for i in f2S.tree.item(node)['values'][2:]]
-                f.write('\n' + '\t'.join(w))
+                if xna == True and 'N/A' in w: pass
+                else: f.write('\n' + '\t'.join(w))
         else:
             f.write('Node ID\t')
             header = clust.tree['columns']
