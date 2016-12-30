@@ -18,6 +18,7 @@ menubar = Menu(root)
 filemenu = Menu(menubar, tearoff = 0)
 exportmenu = Menu(menubar, tearoff = 0)
 optmenu = Menu(menubar, tearoff = 0)
+compmenu = Menu(optmenu, tearoff = 0)
 nb = ttk.Notebook(root)
 
 nb.enable_traversal()
@@ -106,8 +107,8 @@ clust.xscroll = ttk.Scrollbar(clust, orient = HORIZONTAL, command = clust.tree.x
 clust.tree.configure(xscrollcommand = clust.xscroll.set)
 
 main.tree['columns'] = ('Mutations','Leaves', u'ρ (Rho)', 'SE', 'Age', 'Confidence interval')
-f1S.tree['columns'] = ('Mutations','Type','Leaves','f1','SE')
-f2S.tree['columns'] = ('Mutations','Type','Leaves','f2','SE', 'f2+')
+f1S.tree['columns'] = ('Mutations','Type','Leaves',u'ƒ1','SE')
+f2S.tree['columns'] = ('Mutations','Type','Leaves',u'ƒ2','SE', u'ƒ2+')
 
 for frame in [main, f1S, f2S]:
     for column in frame.tree['columns']:
@@ -121,8 +122,8 @@ f2S.tree.column('Type', width = 65)
 
 
 nb.add(main, text = "Tree information")
-nb.add(f1S, text = "f1 statistics", state = 'disabled')
-nb.add(f2S, text = "f2 statistics", state = 'disabled')
+nb.add(f1S, text = u"ƒ1 statistics", state = 'disabled')
+nb.add(f2S, text = u"ƒ2 statistics", state = 'disabled')
 nb.add(clust, text = 'Founder analysis', state = 'disabled')
 
 
@@ -196,7 +197,7 @@ def saveTable():
     save = tkFileDialog.asksaveasfilename(parent = root, initialfile = "%s_table.txt" % n.root.name)
     try:
         f = open(save,'w')
-        header = ['Node','Leaves','Rho','Standard error','Age','Confidence interval','f1 leaves','f1 Rho','f1 SE','f2 leaves','f2 Rho','f2 SE','f2+ eligible']
+        header = ['Node','Leaves','Rho','Standard error','Age','Confidence interval',u'ƒ1 leaves',u'ƒ1 Rho',u'ƒ1 SE',u'ƒ2 leaves',u'ƒ2 Rho',u'ƒ2 SE',u'ƒ2+ eligible']
         if current == main.tree:
             header = header[:6]
             f.write('\t'.join(header))
@@ -246,7 +247,7 @@ def saveAll():
     except: sys.stdout.write('\n')
 
 
-def calcMigrations():
+def calcMigs(fv = 1):
 
     rof = tkMessageBox.askyesno("Migration dates", "Would you like to specify a range?")
     if rof == True:
@@ -261,7 +262,7 @@ def calcMigrations():
             migrations = [tkSimpleDialog.askinteger(parent = root, title = 'Migration dates', prompt = 'Input date %s' % (i+1), initialvalue = '%s' % ((i+1) * 1000)) for i in range(howmany)]
         except: return
     mutationRate = tkSimpleDialog.askfloat(parent = root, title = 'Mutation rate', prompt = 'Input the mutation rate', initialvalue = '1000')
-    probs = n.migrationProbs(migrations,mutationRate)
+    probs = n.migrationProbs(migrations,mutationRate, fv)
     clust.tree.delete('None'); clust.tree.insert('',0,'None', open = True)
     clust.tree.heading("#0",text = "Mutation rate: %s" % probs.keys()[0], anchor = 'w')
     clust.scroll.pack(side = RIGHT, fill = BOTH)
@@ -276,6 +277,11 @@ def calcMigrations():
     for item in probs.keys()[1:]:
         clust.tree.insert('None','end', iid = item, text = item, values = [str(i) for i in probs[item]], open = True)
     nb.tab(3, state = 'normal')
+
+
+def calcMigsF2():
+
+    calcMigs(fv = 2)
 
 
 def genXML():
@@ -325,7 +331,11 @@ def findNode():
     except: pass
 
 
-optmenu.add_command(label = "Compute migration clusters", command = calcMigrations)
+optmenu.add_cascade(label = "Compute migration clusters", menu = compmenu)
+
+compmenu.add_command(label = u"ƒ1", command = calcMigs)
+compmenu.add_command(label = u"ƒ2", command = calcMigsF2)
+
 optmenu.add_separator()
 optmenu.add_command(label = "Show/Hide leaves", command = toggleLeaves)
 optmenu.add_command(label = "Find node", command = findNode)
@@ -338,7 +348,7 @@ filemenu.entryconfig(1, state = "disabled")
 filemenu.add_separator()
 filemenu.add_command(label = "Export tree (Newick format)", command = exportNewick)
 filemenu.add_command(label = "Save current table (TSV)", command = saveTable)
-filemenu.add_command(label = "Save all (TSV)", command = saveAll)
+filemenu.add_command(label = "Save all statistics (TSV)", command = saveAll)
 filemenu.entryconfig(4, state = "disabled")
 filemenu.entryconfig(5, state = "disabled")
 filemenu.entryconfig(6, state = "disabled")

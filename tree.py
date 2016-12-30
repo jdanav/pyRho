@@ -262,15 +262,15 @@ class Tree:
         else: self.tree[node].extra['f2+'] = False
         return self.tree[node].extra['f2+']
 
-    def migrationProbs(self, migrations, mutationRate):
+    def migrationProbs(self, migrations, mutationRate, f):
 
         probabilities = odict()
         probabilities[mutationRate] = migrations
         for i in self.nodes:
             node = self.tree[i]
-            if 'f1' in node.extra:
-                f1 = node.extra['f1']
-                vals = [exp(-f1[0] * (float(M)/mutationRate) - f1[1] * log(float(M)/mutationRate)) for M in migrations]
+            if 'f%s' % f in node.extra:
+                fval = node.extra['f%s' % f]
+                vals = [exp(-fval[0] * (float(M)/mutationRate) - fval[1] * log(float(M)/mutationRate)) for M in migrations]
                 probs = [round(val/sum(vals),4) for val in vals]
                 probabilities[node.name] = probs
         return probabilities
