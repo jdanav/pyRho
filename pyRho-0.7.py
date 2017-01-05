@@ -37,6 +37,7 @@ n = None
 class rangeWindow(tkSimpleDialog.Dialog):
 
     def body(self, master):
+        self.resizable(0,0)
         self.desc = Label(master, text = "Specify a valid range for the migration dates\n")
         Label(master, text="Latest:").grid(row = 1)
         Label(master, text="Earliest:").grid(row = 2)
@@ -60,6 +61,8 @@ class rangeWindow(tkSimpleDialog.Dialog):
         stop = int(self.e2.get())
         step = int(self.e3.get())
         self.range = range(start, stop+step, step)
+        ## ensure start < stop and step < stop
+        if self.range[-1] > stop: self.range.pop()
 
 
 def getItem(a):
@@ -227,6 +230,9 @@ def saveTable():
                 if clust.tree.exists(node):
                     w = [node] + [str(i) for i in clust.tree.item(node)['values']]
                     f.write('\n' + '\t'.join(w))
+            x = 'Mean contribution of each migration'
+            w = [x] + [str(i) for i in clust.tree.item(x)['values']]
+            f.write('\n\n' + '\t'.join(w))
         f.close()
         sys.stdout.write('%s successfully created\n' % (save))
     except: sys.stdout.write('\n')
@@ -260,6 +266,7 @@ def calcMigs(fv = 1):
         try:
             howmany = tkSimpleDialog.askinteger(parent = root, title = 'Migration dates', prompt = 'How many migrations?')
             migrations = [tkSimpleDialog.askinteger(parent = root, title = 'Migration dates', prompt = 'Input date %s' % (i+1), initialvalue = '%s' % ((i+1) * 1000)) for i in range(howmany)]
+            ## ensure all migration dates are different (set?)
         except: return
     mutationRate = tkSimpleDialog.askfloat(parent = root, title = 'Mutation rate', prompt = 'Input the mutation rate', initialvalue = '1000')
     probs = n.migrationProbs(migrations,mutationRate, fv)

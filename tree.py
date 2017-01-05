@@ -266,6 +266,7 @@ class Tree:
 
         probabilities = odict()
         probabilities[mutationRate] = migrations
+        MC = [0.0 for M in range(len(migrations))]
         for i in self.nodes:
             node = self.tree[i]
             if 'f%s' % f in node.extra:
@@ -273,4 +274,7 @@ class Tree:
                 vals = [exp(-fval[0] * ((float(M)/mutationRate) - fval[1] * log(float(M)/mutationRate))) for M in migrations]
                 probs = [round(val/sum(vals),4) for val in vals]
                 probabilities[node.name] = probs
+                for M in range(len(migrations)): MC[M] += probabilities[node.name][M] * fval[0]
+        probabilities['\t'] = ['' for i in range(len(migrations))]
+        probabilities['Mean contribution of each migration'] = [round(x/sum(MC),4) for x in MC]
         return probabilities
