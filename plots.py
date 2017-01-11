@@ -20,7 +20,7 @@ def stackProb(master, title, f1, f2):
     for data, loc in zip((f1,f2), ((1,1),(1,4))):
         ax = plt.subplot2grid((10,7), loc, rowspan = 9, colspan = 2)
         ax.invert_yaxis()
-        colors = 'rgbykmc'
+        colors = 'cmwkybgr' * len(data)
         labels = [i for i in data.keys()[1:-3]]
         ind = range(len(labels))
         ax.axes.set_xlim([0,1]); ax.axes.set_ylim([-1, len(ind)])
@@ -28,7 +28,7 @@ def stackProb(master, title, f1, f2):
         pos = [0 for i in ind]
 
         for i in range(len(fdata)):
-            ax.barh(ind,fdata[i], align = 'center', color = colors[i], label = data.values()[0][i], left = pos, edgecolor = 'none')
+            ax.barh(ind,fdata[i], align = 'center', color = colors[-i -1], label = data.values()[0][i], left = pos, edgecolor = 'none')
             pos = [pos[j] + fdata[i][j] for j in range(len(fdata[i]))]
         ax.set_yticks(ind); ax.set_yticklabels(labels)
         ax.set_xticklabels(['%s%%' % i for i in range(0,101,20)])
@@ -49,19 +49,17 @@ def rangeProb(master, title, xlabelticks, xlabel, ylabel, f1, f2):
 
     master.withdraw()
 
-    f1 = f1.values()[-2]
-    f2 = f2.values()[-2]
-
     ind = np.arange(len(xlabelticks))
     fig, ax = plt.subplots()
 
-    f1line = ax.plot(xlabelticks, f1, label = u'ƒ1', lw = 2)
-    f2line = ax.plot(xlabelticks, f2, label = u'ƒ2', lw = 2)
+    f1line = ax.plot(xlabelticks, f1.values()[-2], label = u'ƒ1', lw = 2)
+    f2line = ax.plot(xlabelticks, f2.values()[-2], label = u'ƒ2', lw = 2)
 
     ax.legend(loc = 'best')
     ax.set_ylabel(ylabel)
     ax.set_xlabel(xlabel)
     ax.set_title('%s\n' % title)
+    ax.axes.set_xlim([f1.values()[0][0],f1.values()[0][-1]])
 
     plt.figure(1).canvas.set_window_title(title)
     plt.show()

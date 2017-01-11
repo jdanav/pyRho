@@ -187,6 +187,7 @@ def openXML():
             sys.stdout.write('\rPopulating tree... %s/%s' % (i, len(n.tree)))
         sys.stdout.write('\n')
         for i in [1,4,5,6]: filemenu.entryconfig(i, state = "normal")
+        for i in [0,1]: optmenu.entryconfig(i, state = 'disabled')
         menubar.entryconfig(2, state = "normal")
         main.tree.focus_set()
     except: sys.stdout.write('\n')
@@ -215,6 +216,7 @@ def openTypes():
         for i in range(1,3): nb.tab(i, state = 'normal')
         nb.tab(3, state = 'disabled')
         nb.tab(4, state = 'disabled')
+        optmenu.entryconfig(1, state = "disabled")
     except: sys.stdout.write('\n')
 
 
