@@ -262,19 +262,26 @@ class Tree:
         else: self.tree[node].extra['f2+'] = False
         return self.tree[node].extra['f2+']
 
-    def migrationProbs(self, migrations, mutationRate, f):
+    def migrationProbs(self, migrations, mutationRate, f, effective):
 
         probabilities = odict()
         probabilities[mutationRate] = migrations
         MC = [0.0 for M in range(len(migrations))]
+        DM = [0.0 for M in range(len(migrations))]
+        t_leaves = 0
         for i in self.nodes:
             node = self.tree[i]
             if 'f%s' % f in node.extra:
                 fval = node.extra['f%s' % f]
-                vals = [exp(-fval[0] * ((float(M)/mutationRate) - fval[1] * log(float(M)/mutationRate))) for M in migrations]
+                N = fval[1]/(fval[2]**2) if effective and fval[1] > 0 else fval[0]
+                vals = [exp(- N * ((float(M)/mutationRate) - fval[1] * log(float(M)/mutationRate))) for M in migrations]
                 probs = [round(val/sum(vals),4) for val in vals]
                 probabilities[node.name] = probs
-                for M in range(len(migrations)): MC[M] += probabilities[node.name][M] * fval[0]
+                t_leaves += fval[0]
+                for M in range(len(migrations)):
+                    MC[M] += probabilities[node.name][M] * fval[0]
+                    DM[M] += (1 - probabilities[node.name][M]) * probabilities[node.name][M] * fval[0]**2
         probabilities['\t'] = ['' for i in range(len(migrations))]
         probabilities['Mean contribution of each migration'] = [round(x/sum(MC),4) for x in MC]
+        probabilities['Deviation from the mean'] = [round((x**0.5)/t_leaves,4) for x in DM]
         return probabilities
