@@ -77,9 +77,9 @@ class labelWindow(tkSimpleDialog.Dialog):
         Label(master, text="X-axis label ").grid(row = 2)
         Label(master, text="Y-axis label ").grid(row = 3)
 
-        self.e1 = Entry(master, width = 40)
-        self.e2 = Entry(master, width = 40)
-        self.e3 = Entry(master, width = 40)
+        self.e1 = Entry(master, width = 30)
+        self.e2 = Entry(master, width = 30)
+        self.e3 = Entry(master, width = 30)
         self.desc.grid(row = 0, columnspan = 3)
         self.e1.grid(row = 1, column = 1)
         self.e2.grid(row = 2, column = 1)
@@ -198,6 +198,7 @@ def openTypes():
     try:
         global n
         types = tkFileDialog.askopenfilename(parent = root, filetypes = [('text files', '.txt'), ('all files', '.*')])
+        if types == '': return
         n.updateTypes(types.encode('utf-8'))
         i = 0
         f1S.tree.delete('None'); f1S.tree.insert('',0,'None', open = True)
@@ -358,12 +359,32 @@ def showBar():
 
 def showStacked():
 
-    global probsF1, probsF2
-    title = tkSimpleDialog.askstring(parent = root, title = 'Edit figure title', prompt = '', initialvalue = 'Figure 1')
+    global n, probsF1, probsF2
+    labels = [False, False]
+    prop = tkMessageBox.askyesno("Individual proportions", "Show bars proportional to sample size?")
+    if prop == True:
+        pF1, pF2 = odict(), odict()
+        for new, old in zip((pF1,pF2), (probsF1,probsF2)):
+            new[old.keys()[0]] = old.values()[0]
+            label = []
+            for key in old.keys()[1:-3]:
+                reps = n.tree[key].extra['f1' if old == probsF1 else 'f2'][0]
+                if reps == 1:
+                    k = key + ' -' if old == probsF1 else '- ' + key
+                else: k = key
+                label.append(k)
+                new[key] = old[key]
+                for i in range(reps - 1):
+                    new[key+'__%s' % i ] = old[key]
+                    if i % 2 == 0: label.insert(label.index(k), '')
+                    else: label.append('')
+            for i in range(-3,0): new[old.keys()[i]] = old.values()[i]
+            labels[0 if old == probsF1 else 1] = label
+    title = tkSimpleDialog.askstring(parent = root, title = 'Figure title', prompt = 'Edit figure title', initialvalue = 'Figure 1')
     plots = Tk()
     plots.withdraw()
-    stackProb(plots, title, probsF1, probsF2)
-
+    if prop: stackProb(plots, title, pF1, pF2, labels)
+    else: stackProb(plots, title, probsF1, probsF2, labels)
 
 def genXML():
 
