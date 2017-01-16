@@ -59,13 +59,12 @@ def stackProb(master, title, f1, f2, labels):
 
     for data, loc, lab in zip((f1,f2), ((1,1),(1,4)), labels):
         ax = plt.subplot2grid((10,7), loc, rowspan = 9, colspan = 2)
-        colors = ((1,0,0,.7),(1,1,0,.7),(0,0,1,.7),(0,1,0,.7),\
-                (.4,.4,.4,.7),(1,0,1,.7),(1,1,1,.7),(0,0,0,.7))
-
         labels = lab if lab else [i for i in data.keys()[1:-3]]
         ind = range(len(labels))
         ax.axes.set_xlim([0,1]); ax.axes.set_ylim([-1, len(ind)])
         fdata = [[data[y][M] for y in data.keys()[1:-3]] for M in range(len(data.values()[0]))]
+        colors = ((1,0,0,.7),(1,1,0,.7),(0,0,1,.7),(0,1,0,.7),\
+                (.3,.3,.3,.7),(1,0,1,.7),(0,1,1,.7),(0,0,0,1)) * len(fdata)
         pos = [0 for i in ind]
         height = [1 for i in ind] if lab else [0.8 for i in ind]
 
@@ -81,7 +80,7 @@ def stackProb(master, title, f1, f2, labels):
 
         if data == f1:
             ax.set_title(u'ƒ1\n')
-            ax.legend(loc = 'upper center', bbox_to_anchor=(1.32,1), ncol = 1, handlelength = 0.7, fontsize = 12)
+            ax.legend(loc = 'upper center', frameon = False, bbox_to_anchor=(1.32,1), ncol = 1, handlelength = 0.7, fontsize = 12)
         else:
             ax.set_title(u'ƒ2\n')
             ax.yaxis.tick_right()
