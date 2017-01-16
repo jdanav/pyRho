@@ -236,39 +236,37 @@ def saveTable():
     save = tkFileDialog.asksaveasfilename(parent = root, initialfile = "%s_table.txt" % n.root.name)
     try:
         f = open(save,'w')
-        header = ['Node','Leaves','Rho','Standard error','Age','Confidence interval',u'ƒ1 leaves',u'ƒ1 Rho',u'ƒ1 SE',u'ƒ2 leaves',u'ƒ2 Rho',u'ƒ2 SE',u'ƒ2+ eligible']
+        header = ['Node','Leaves','Rho','Standard error','Age','Confidence interval',u'f1 leaves',u'f1 Rho',u'f1 SE',u'f2 leaves',u'f2 Rho',u'f2 SE',u'f2+ eligible']
         if current == main.tree:
             header = header[:6]
             f.write('\t'.join(header))
             for node in n.nodes:
                 w = [node] + [str(i) for i in main.tree.item(node)['values'][1:]]
                 f.write('\n' + '\t'.join(w))
-        elif current == f1S.tree:
+        elif current == f1S.tree or current == f2S.tree:
             xna = tkMessageBox.askyesno("Save table", "Exclude non-candidate (N/A) nodes?")
-            header = [header[0]] + header[6:9]
+            header = [header[0]] + header[6:9] if current == f1S.tree else [header[0]] + header[9:]
             f.write('\t'.join(header))
             for node in n.nodes:
-                w = [node] + [str(i) for i in f1S.tree.item(node)['values'][2:]]
-                if xna == True and 'N/A' in w: pass
-                else: f.write('\n' + '\t'.join(w))
-        elif current == f2S.tree:
-            xna = tkMessageBox.askyesno("Save table", "Exclude non-candidate (N/A) nodes?")
-            header = [header[0]] + header[9:]
-            f.write('\t'.join(header))
-            for node in n.nodes:
+                w = [node] + [str(i) for i in current.item(node)['values'][2:]]
                 if xna == True and 'N/A' in w: pass
                 else: f.write('\n' + '\t'.join(w))
         else:
+            prop = tkMessageBox.askyesno("Save table", "Write number of lines proportional to sample size?")
             f.write('Node ID\t')
-            header = clust.tree['columns']
+            header = current['columns']
             f.write('\t'.join(header))
             for node in n.nodes:
-                if clust.tree.exists(node):
-                    w = [node] + [str(i) for i in clust.tree.item(node)['values']]
-                    f.write('\n' + '\t'.join(w))
-            x = 'Mean contribution of each migration'
-            w = [x] + [str(i) for i in clust.tree.item(x)['values']]
-            f.write('\n\n' + '\t'.join(w))
+                if current.exists(node):
+                    w = [node] + [str(i) for i in current.item(node)['values']]
+                    if prop == True:
+                        for i in range(n.tree[node].extra['f1' if current == f1C.tree else 'f2'][0]):
+                            f.write('\n' + '\t'.join(w))
+                    else: f.write('\n' + '\t'.join(w))
+            x, y = 'Mean contribution of each migration',' Deviation from the mean'
+            w = [x] + [str(i) for i in current.item(x)['values']]
+            z = [y] + [str(i) for i in current.item(y)['values']]
+            f.write('\n\n' + '\t'.join(w) + '\n' + '\t'.join(z))
         f.close()
         sys.stdout.write('%s successfully created\n' % (save))
     except: sys.stdout.write('\n')

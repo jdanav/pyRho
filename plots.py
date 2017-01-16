@@ -21,7 +21,7 @@ def rangeProb(master, title, xlabelticks, xlabel, ylabel, f1, f2):
     f1line = ax.plot(xlabelticks, f1.values()[-2], label = u'ƒ1', lw = 2, color = 'r')
     f2line = ax.plot(xlabelticks, f2.values()[-2], label = u'ƒ2', lw = 2, color = 'y')
 
-    ax.legend(loc = 'best')
+    ax.legend(loc = 'best', frameon = False)
     ax.set_ylabel(ylabel)
     ax.set_xlabel(xlabel)
     ax.set_title('%s\n' % title)
@@ -40,8 +40,8 @@ def barProb(master, title, xlabelticks, xlabel, ylabel, f1, f2):
     width = 0.25
     fig, ax = plt.subplots()
 
-    f1bars = ax.bar(ind, f1Means, width, color='r', yerr = f1Devs, label = u'ƒ1', error_kw = dict(ecolor='black', lw=1, capsize=3, capthick=1))
-    f2bars = ax.bar(ind + width, f2Means, width, color='y', yerr = f2Devs, label = u'ƒ2', error_kw = dict(ecolor='black', lw=1, capsize=3, capthick=1))
+    f1bars = ax.bar(ind, f1Means, width, color='r', ec = 'none', yerr = f1Devs, label = u'ƒ1', error_kw = dict(ecolor='black', lw=1, capsize=3, capthick=1))
+    f2bars = ax.bar(ind + width, f2Means, width, color='y', ec = 'none', yerr = f2Devs, label = u'ƒ2', error_kw = dict(ecolor='black', lw=1, capsize=3, capthick=1))
 
     ax.set_ylabel(ylabel)
     ax.set_xlabel(xlabel)
@@ -49,7 +49,7 @@ def barProb(master, title, xlabelticks, xlabel, ylabel, f1, f2):
     ax.set_xticks(ind + width)
     ax.set_xticklabels((str(i) for i in xlabelticks))
 
-    ax.legend(loc = 'best', handlelength = 0.7)
+    ax.legend(loc = 'best', frameon = False, handlelength = 0.7)
 
     plt.figure(1).canvas.set_window_title('0.7')
     plt.show()
@@ -59,7 +59,9 @@ def stackProb(master, title, f1, f2, labels):
 
     for data, loc, lab in zip((f1,f2), ((1,1),(1,4)), labels):
         ax = plt.subplot2grid((10,7), loc, rowspan = 9, colspan = 2)
-        colors = 'wmkcgbyr' * len(data)
+        colors = ((1,0,0,.7),(1,1,0,.7),(0,0,1,.7),(0,1,0,.7),\
+                (.4,.4,.4,.7),(1,0,1,.7),(1,1,1,.7),(0,0,0,.7))
+
         labels = lab if lab else [i for i in data.keys()[1:-3]]
         ind = range(len(labels))
         ax.axes.set_xlim([0,1]); ax.axes.set_ylim([-1, len(ind)])
@@ -69,7 +71,7 @@ def stackProb(master, title, f1, f2, labels):
 
         for i in range(len(fdata)):
             ax.barh(ind,fdata[i], align = 'center', height = height, \
-                    color = colors[-i -1], label = data.values()[0][i], \
+                    color = colors[i], label = data.values()[0][i], \
                     left = pos, ec = 'none')
             pos = [pos[j] + fdata[i][j] for j in range(len(fdata[i]))]
         ax.set_yticks(ind); ax.set_yticklabels(labels)
