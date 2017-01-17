@@ -3,8 +3,7 @@
 import re
 from collections import defaultdict as ddict, OrderedDict as odict
 from copy import copy
-from math import sqrt, exp, log
-
+import numpy as np
 
 class Node:
 
@@ -13,7 +12,6 @@ class Node:
         self.name = name
         self.parent = parent
         self.children = []
-        self.siblings = []
         self.mutations = mutations.split(',') if mutations else []
         self.layer = layer
         self.type = [0,0,0,0]
@@ -84,7 +82,6 @@ class Tree:
 
         for sub in self.subtrees.values():
             for k in sub.keys(): sub[k] = copy(self.tree[k])
-
 
 
     def updateTypes(self, types = ''):
@@ -182,7 +179,7 @@ class Tree:
     def Age(self, node):
 
         rho = self.Rho(node, self.subtrees[node])
-        age = (exp(-exp(-0.0263 *(rho + 40.2789))) *rho *3624)
+        age = (np.exp(-np.exp(-0.0263 *(rho + 40.2789))) *rho *3624)
         return round(age, 3)
 
 
@@ -198,7 +195,7 @@ class Tree:
             if not f: lv = set(self.subtrees[nd].keys()) & set(self.leaves)
             else: lv = set(self.subtrees[nd].keys()) & set([i for i in self.leaves if self.tree[i].isSource() == 'Sink'])
             tSum += len(self.tree[nd].mutations) * len(lv) **2
-        se = sqrt(tSum/(len(leaves)**2))
+        se = np.sqrt(tSum/(len(leaves)**2))
         if not f: sub.values()[0].extra['SE'] = se
         return round(se, 3)
 
@@ -207,8 +204,8 @@ class Tree:
 
         rho = self.Rho(node, self.subtrees[node])
         se = self.StErr(self.subtrees[node])
-        lower = max(exp(-exp(-0.0263 * ((rho - (1.96 * se)) + 40.2789))) * (rho - (1.96 * se)) * 3624.0, 0)
-        upper = exp(-exp(-0.0263 * ((rho + (1.96 * se)) + 40.2789))) * (rho + (1.96 * se)) * 3624.0;
+        lower = max(np.exp(-np.exp(-0.0263 * ((rho - (1.96 * se)) + 40.2789))) * (rho - (1.96 * se)) * 3624.0, 0)
+        upper = np.exp(-np.exp(-0.0263 * ((rho + (1.96 * se)) + 40.2789))) * (rho + (1.96 * se)) * 3624.0;
         return round(lower, 3), round(upper, 3)
 
 
@@ -255,6 +252,7 @@ class Tree:
         else: self.tree[node].extra['f2+'] = False
         return self.tree[node].extra['f2+']
 
+
     def migrationProbs(self, migrations, mutationRate, f, effective):
 
         probabilities = odict()
@@ -267,7 +265,7 @@ class Tree:
             if 'f%s' % f in node.extra:
                 fval = node.extra['f%s' % f]
                 N = fval[1]/(fval[2]**2) if effective and fval[1] > 0 else fval[0]
-                vals = [exp(- N * ((float(M)/mutationRate) - fval[1] * log(float(M)/mutationRate))) for M in migrations]
+                vals = [np.exp(- N * ((float(M)/mutationRate) - fval[1] * np.log(float(M)/mutationRate))) for M in migrations]
                 probs = [round(val/sum(vals),4) for val in vals]
                 probabilities[node.name] = probs
                 t_leaves += fval[0]

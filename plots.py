@@ -3,7 +3,6 @@
 
 from tree import *
 from Tkinter import *
-import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
