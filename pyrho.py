@@ -67,7 +67,7 @@ class rangeWindow(tkSimpleDialog.Dialog):
         start = int(self.e1.get())
         stop = int(self.e2.get())
         step = int(self.e3.get())
-        self.range = range(start, stop+step, step)
+        self.range = xrange(start, stop+step, step)
         ## ensure start < stop and step < stop
         if self.range[-1] > stop: self.range.pop()
 
@@ -171,7 +171,7 @@ def openXML():
         global n, visible, filemenu, menubar
         filename = tkFileDialog.askopenfilename(parent = root, filetypes = [('XML files', '.xml'), ('all files', '.*')])
         n = Tree(filename.encode('utf-8'))
-        for i in range(1,5): nb.tab(i, state = 'disabled')
+        for i in xrange(1,5): nb.tab(i, state = 'disabled')
         if n.viable != 1:
             tkMessageBox.showerror("Error loading XML file", "Multiple instances of node %s (line %s)" % (n.viable[0], n.viable[1]))
             return
@@ -213,7 +213,7 @@ def openTypes():
             i += 1
         optmenu.entryconfig(0, state = "normal")
         root.label['text'] = '%s internal nodes and %s leaves in %s layers (%s sources and %s sinks, %s undefined)' % (len(n.nodes), len(n.leaves), len(n.layers), n.nsrc, n.nsnk, n.nudf)
-        for i in range(1,3): nb.tab(i, state = 'normal')
+        for i in xrange(1,3): nb.tab(i, state = 'normal')
         nb.tab(3, state = 'disabled')
         nb.tab(4, state = 'disabled')
         optmenu.entryconfig(1, state = "disabled")
@@ -259,7 +259,7 @@ def saveTable():
                 if current.exists(node):
                     w = [node] + [str(i) for i in current.item(node)['values']]
                     if prop == True:
-                        for i in range(n.tree[node].extra['f1' if current == f1C.tree else 'f2'][0]):
+                        for i in xrange(n.tree[node].extra['f1' if current == f1C.tree else 'f2'][0]):
                             f.write('\n' + '\t'.join(w))
                     else: f.write('\n' + '\t'.join(w))
             x, y = 'Mean contribution of each migration',' Deviation from the mean'
@@ -371,11 +371,11 @@ def showStacked():
                 else: k = key
                 label.append(k)
                 new[key] = old[key]
-                for i in range(reps - 1):
+                for i in xrange(reps - 1):
                     new[key+'__%s' % i ] = old[key]
                     if i % 2 == 0: label.insert(label.index(k), '')
                     else: label.append('')
-            for i in range(-3,0): new[old.keys()[i]] = old.values()[i]
+            for i in xrange(-3,0): new[old.keys()[i]] = old.values()[i]
             labels[0 if old == probsF1 else 1] = label
     title = tkSimpleDialog.askstring(parent = root, title = 'Figure title', prompt = 'Edit figure title', initialvalue = 'Figure 1')
     plots = Tk()
@@ -392,7 +392,7 @@ def genXML():
         from random import randint
         closes = 1; nodes = 1
         f = open(filename, 'w')
-        last = '<Node Id="NoLabel" HG="%s">\n' % ','.join(['x' for i in range(randint(0,12))])
+        last = '<Node Id="NoLabel" HG="%s">\n' % ','.join(['x' for i in xrange(randint(0,12))])
         f.write(last)
         while nodes < (maxnodes - 1): # closes > sqrt(maxnodes)*0.75
             nl = randint(-5000,5000) if closes > 10 and last[-3] == '/' \
@@ -400,17 +400,17 @@ def genXML():
                        else (randint(-2,6) if closes > 1 \
                              else 1))
             if nl <= 0:
-                last = '\t' * closes + '<Node Id="NoLabel" HG="%s" />\n' % ','.join(['x' for i in range(randint(0,6))])
+                last = '\t' * closes + '<Node Id="NoLabel" HG="%s" />\n' % ','.join(['x' for i in xrange(randint(0,6))])
                 nodes += 1
             elif nl in [1,2,3]:
-                last = '\t' * closes + '<Node Id="NoLabel" HG="%s">\n' % ','.join(['x' for i in range(randint(0,6))])
+                last = '\t' * closes + '<Node Id="NoLabel" HG="%s">\n' % ','.join(['x' for i in xrange(randint(0,6))])
                 closes += 1; nodes += 1
             else:
                 closes -= 1
                 last = '\t' * closes + '</Node>\n'
             f.write(last)
         if last[-3] == '"':
-            f.write('\t' * closes + '<Node Id="NoLabel" HG="%s" />\n' % ','.join(['x' for i in range(randint(0,6))]))
+            f.write('\t' * closes + '<Node Id="NoLabel" HG="%s" />\n' % ','.join(['x' for i in xrange(randint(0,6))]))
         while closes > 0:
             f.write('\t' * (closes-1) + '</Node>\n')
             closes -= 1

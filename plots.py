@@ -60,9 +60,9 @@ def stackProb(master, title, f1, f2, labels):
     for data, loc, lab in zip((f1,f2), ((1,1),(1,4)), labels):
         ax = plt.subplot2grid((10,7), loc, rowspan = 9, colspan = 2)
         labels = lab if lab else [i for i in data.keys()[1:-3]]
-        ind = range(len(labels))
+        ind = xrange(len(labels))
         ax.axes.set_xlim([0,1]); ax.axes.set_ylim([-1, len(ind)])
-        fdata = [[data[y][M] for y in data.keys()[1:-3]] for M in range(len(data.values()[0]))]
+        fdata = [[data[y][M] for y in data.keys()[1:-3]] for M in xrange(len(data.values()[0]))]
         colors = [(.286, .0, .573), (.0, .427, .859), (.714, .427, 1.0),\
                     (.427, .714, 1.0), (.714, .859, 1.0), (.573, .0, .0), \
                     (.573, .286, .0), (.859, .427, .0), (.141, 1.0, .141), \
@@ -71,13 +71,13 @@ def stackProb(master, title, f1, f2, labels):
         pos = [0 for i in ind]
         height = [1 for i in ind] if lab else [0.8 for i in ind]
 
-        for i in range(len(fdata)):
+        for i in xrange(len(fdata)):
             ax.barh(ind,fdata[i], align = 'center', height = height, \
                     color = colors[i], label = data.values()[0][i], \
                     left = pos, ec = 'none')
-            pos = [pos[j] + fdata[i][j] for j in range(len(fdata[i]))]
+            pos = [pos[j] + fdata[i][j] for j in xrange(len(fdata[i]))]
         ax.set_yticks(ind); ax.set_yticklabels(labels)
-        ax.set_xticklabels(['%s%%' % i for i in range(0,101,20)])
+        ax.set_xticklabels(['%s%%' % i for i in xrange(0,101,20)])
         for spine in ax.spines: ax.spines[spine].set_color('none')
         ax.tick_params(axis='both', color ='none')
 

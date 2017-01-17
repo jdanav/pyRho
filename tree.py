@@ -52,7 +52,7 @@ class Tree:
             layers[0] = None
             F = f.readlines(); f.close()
             Fl = len(F)
-            for i in range(Fl):
+            for i in xrange(Fl):
                 match = re.search('Id=(.*) HG=(.*)>', F[i])
                 if "/Node" in F[i]: l -= 1
                 elif match is None: pass
@@ -115,11 +115,11 @@ class Tree:
 
     def updateNodes(self):
 
-        for layer in range(len(self.layers), 1, -1):
+        for layer in xrange(len(self.layers), 1, -1):
             for node in self.layers[layer]:
                 parent = self.tree[node].parent
                 if node in self.leaves and self.tree[node].isSource() != "Undefined":
-                    for i in range(4):
+                    for i in xrange(4):
                         self.tree[parent].type[i] += self.tree[node].type[i]
                 elif node in self.leaves and self.tree[node].isSource() == "Undefined":
                     self.tree[parent].type[3] += 1
@@ -230,7 +230,7 @@ class Tree:
     def fStats(self, node, N):
 
         sub = copy(self.subtrees[node])
-        for i in range(len(sub)-1, 0, -1):
+        for i in xrange(len(sub)-1, 0, -1):
             tp = sub.values()[i].type
             if tp[0] > (N-1) or sub.values()[i].isSource() in ["Source", "Undefined"]: #or tp[1] > (N-1)
                 sub = self.removeNode(sub, sub.keys()[i])
@@ -259,8 +259,8 @@ class Tree:
 
         probabilities = odict()
         probabilities[mutationRate] = migrations
-        MC = [0.0 for M in range(len(migrations))]
-        DM = [0.0 for M in range(len(migrations))]
+        MC = [0.0 for M in xrange(len(migrations))]
+        DM = [0.0 for M in xrange(len(migrations))]
         t_leaves = 0
         for i in self.nodes:
             node = self.tree[i]
@@ -271,10 +271,10 @@ class Tree:
                 probs = [round(val/sum(vals),4) for val in vals]
                 probabilities[node.name] = probs
                 t_leaves += fval[0]
-                for M in range(len(migrations)):
+                for M in xrange(len(migrations)):
                     MC[M] += probabilities[node.name][M] * fval[0]
                     DM[M] += (1 - probabilities[node.name][M]) * probabilities[node.name][M] * fval[0]**2
-        probabilities['\t'] = ['' for i in range(len(migrations))]
+        probabilities['\t'] = ['' for i in xrange(len(migrations))]
         probabilities['Mean contribution of each migration'] = [round(x/sum(MC),4) for x in MC]
         probabilities['Deviation from the mean'] = [round((x**0.5)/t_leaves,4) for x in DM]
         return probabilities
