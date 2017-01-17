@@ -4,10 +4,14 @@
 from plots import *
 from tree import *
 import ttk, tkFileDialog, tkSimpleDialog, tkMessageBox
+import FileDialog
 
 root = Tk()
+root.iconify()
+root.deiconify()
+
 root.title("0.7")
-root.iconbitmap(default = 'favicon.ico')
+root.iconbitmap(default = 'C:\\Users\\Dan\\Desktop\\pyRho\\favicon.ico')
 root.label = ttk.Label(root, text = 'Ready')
 root.label.pack(side = BOTTOM, anchor = 'w')
 root.geometry('850x490')
@@ -156,10 +160,9 @@ f1S.tree.column('Type', width = 65)
 f2S.tree.column('Type', width = 65)
 
 nb.add(main, text = "Tree information")
-nb.add(f1S, text = u"ƒ1 statistics", state = 'disabled')
-nb.add(f2S, text = u"ƒ2 statistics", state = 'disabled')
-nb.add(f1C, text = u"ƒ1 founder analysis", state = 'disabled')
-nb.add(f2C, text = u"ƒ2 founder analysis", state = 'disabled')
+for a, b in zip((f1S,f2S,f1C,f2C),(u"ƒ1 statistics",u"ƒ2 statistics",\
+                        u"ƒ1 founder analysis",u"ƒ2 founder analysis")):
+    nb.add(a, text = b, state = 'disabled')
 
 
 def openXML():
@@ -169,28 +172,26 @@ def openXML():
         filename = tkFileDialog.askopenfilename(parent = root, filetypes = [('XML files', '.xml'), ('all files', '.*')])
         n = Tree(filename.encode('utf-8'))
         for i in range(1,5): nb.tab(i, state = 'disabled')
-        if n.viable != 1: return
+        if n.viable != 1:
+            tkMessageBox.showerror("Error loading XML file", "Multiple instances of node %s (line %s)" % (n.viable[0], n.viable[1]))
+            return
         for frame in [main, f1S, f2S]:
             frame.tree.heading("#0",text = "File path:\t%s" % filename, anchor = 'w')
             frame.tree.delete('None'); frame.tree.insert('',0,'None', open = True)
             visible = 1
         root.label['text'] = '%s internal nodes and %s leaves in %s layers' % (len(n.nodes), len(n.leaves), len(n.layers))
 
-        i = 0
         for node in n.tree.values():
             if node.name in n.leaves:
                 main.tree.insert(node.parent,'end', iid = node.name, text = node.name, tags = ('leaf'), values = (len(node.mutations), '--','--','--','--','--'))
             elif node.name in n.nodes:
                 xnode = n.subtrees[node.name]
                 main.tree.insert(str(node.parent),'end', iid = node.name, text = node.name, tags = ('node'), values = (len(node.mutations), len(set(xnode.keys()) & set (n.leaves)), n.Rho(node.name, xnode), n.StErr(xnode), n.Age(node.name), n.ConfidenceInterval(node.name)), open = True)
-            i += 1
-            sys.stdout.write('\rPopulating tree... %s/%s' % (i, len(n.tree)))
-        sys.stdout.write('\n')
         for i in [1,4,5,6]: filemenu.entryconfig(i, state = "normal")
         for i in [0,1]: optmenu.entryconfig(i, state = 'disabled')
         menubar.entryconfig(2, state = "normal")
         main.tree.focus_set()
-    except: sys.stdout.write('\n')
+    except: return
 
 
 def openTypes():
@@ -210,15 +211,13 @@ def openTypes():
             f1S.tree.insert(str(node.parent),'end', iid = node.name, text = node.name, tags = ('node' if node.name in n.nodes else 'leaf'), values = (len(node.mutations), node.isSource(), f1[0], f1[1], f1[2]), open = True)
             f2S.tree.insert(str(node.parent),'end', iid = node.name, text = node.name, tags = ('node' if node.name in n.nodes else 'leaf'), values = (len(node.mutations), node.isSource(), f2[0], f2[1], f2[2], n.f2plus(node.name)), open = True)
             i += 1
-            sys.stdout.write('\rUpdating tree... %s/%s' % (i, len(n.tree)))
-        sys.stdout.write('\n')
         optmenu.entryconfig(0, state = "normal")
         root.label['text'] = '%s internal nodes and %s leaves in %s layers (%s sources and %s sinks, %s undefined)' % (len(n.nodes), len(n.leaves), len(n.layers), n.nsrc, n.nsnk, n.nudf)
         for i in range(1,3): nb.tab(i, state = 'normal')
         nb.tab(3, state = 'disabled')
         nb.tab(4, state = 'disabled')
         optmenu.entryconfig(1, state = "disabled")
-    except: sys.stdout.write('\n')
+    except: return
 
 
 def exportNewick():
@@ -268,8 +267,8 @@ def saveTable():
             z = [y] + [str(i) for i in current.item(y)['values']]
             f.write('\n\n' + '\t'.join(w) + '\n' + '\t'.join(z))
         f.close()
-        sys.stdout.write('%s successfully created\n' % (save))
-    except: sys.stdout.write('\n')
+        tkMessageBox.showinfo('Save table', '%s successfully created\n' % (save))
+    except: return
 
 
 def saveAll():
@@ -283,8 +282,8 @@ def saveAll():
             w = [node] + [str(i) for i in main.tree.item(node)['values'][1:]] + [str(i) for i in f1S.tree.item(node)['values'][2:]] + [str(i) for i in f2S.tree.item(node)['values'][2:]]
             f.write('\n' + '\t'.join(w))
         f.close()
-        sys.stdout.write('%s successfully created\n' % (save))
-    except: sys.stdout.write('\n')
+        tkMessageBox.showinfo('Save table', '%s successfully created\n' % (save))
+    except: return
 
 
 def calcMigs(alt = False):
@@ -416,7 +415,7 @@ def genXML():
             f.write('\t' * (closes-1) + '</Node>\n')
             closes -= 1
         f.close()
-    except: sys.stdout.write('\n')
+    except: return
 
 
 def findNode():

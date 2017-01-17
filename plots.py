@@ -63,8 +63,11 @@ def stackProb(master, title, f1, f2, labels):
         ind = range(len(labels))
         ax.axes.set_xlim([0,1]); ax.axes.set_ylim([-1, len(ind)])
         fdata = [[data[y][M] for y in data.keys()[1:-3]] for M in range(len(data.values()[0]))]
-        colors = ((1,0,0,.7),(1,1,0,.7),(0,0,1,.7),(0,1,0,.7),\
-                (.3,.3,.3,.7),(1,0,1,.7),(0,1,1,.7),(0,0,0,1)) * len(fdata)
+        colors = [(.286, .0, .573), (.0, .427, .859), (.714, .427, 1.0),\
+                    (.427, .714, 1.0), (.714, .859, 1.0), (.573, .0, .0), \
+                    (.573, .286, .0), (.859, .427, .0), (.141, 1.0, .141), \
+                    (1.0, 1.0, .427)] * len(ind)
+        colors.reverse()
         pos = [0 for i in ind]
         height = [1 for i in ind] if lab else [0.8 for i in ind]
 

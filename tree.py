@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import re, sys
+import re
 from collections import defaultdict as ddict, OrderedDict as odict
 from copy import copy
 from math import sqrt, exp, log
@@ -53,7 +53,6 @@ class Tree:
             F = f.readlines(); f.close()
             Fl = len(F)
             for i in range(Fl):
-                sys.stdout.write('\rLoading file... %s/%s' % (i+1, Fl))
                 match = re.search('Id=(.*) HG=(.*)>', F[i])
                 if "/Node" in F[i]: l -= 1
                 elif match is None: pass
@@ -62,7 +61,9 @@ class Tree:
                     if node.name == "NoLabel":
                         self.noLabel += 1
                         node.name = node.name + "_%s" % self.noLabel
-                    if node.name in self.tree: sys.stdout.write('\nWarning! Multiple copies of %s' % node.name); return
+                    if node.name in self.tree:
+                        self.viable = [node.name, i+1]
+                        return
                     self.tree[node.name] = node
                     if l >= 2: self.tree[layers[l-1]].children.append(node.name)
                     if not node.layer in self.layers:
@@ -76,16 +77,14 @@ class Tree:
                     for x in layers.values()[1:l+1]:
                         if node.layer > self.tree[x].layer: self.subtrees[x][node.name] = copy(node)
             self.viable = 1
-            sys.stdout.write('\n')
-        else: sys.stdout.write('\n')
+        else: return
 
 
-    def updateSubs(self, j, c):
+    def updateSubs(self):
 
         for sub in self.subtrees.values():
             for k in sub.keys(): sub[k] = copy(self.tree[k])
-            j += 1
-            sys.stdout.write('\rUpdating types... %s/%s' % (j,(c + len(self.tree) + len(self.subtrees))))
+
 
 
     def updateTypes(self, types = ''):
@@ -96,7 +95,6 @@ class Tree:
             f = open(types, 'r')
             codes = f.readlines()
             f.close()
-            j = 0
             for line in codes:
                 line = line.strip('\n').split('\t')
                 if line[0] in self.leaves:
@@ -106,19 +104,16 @@ class Tree:
                     elif line[1] in ["Source","source", "SOURCE"]:
                         leaf.type = [1,0,0,0] if leaf.mutations != [] else [0,1,0,0]
                     else: leaf.type = [0,0,0,1]
-                j += 1
-                sys.stdout.write('\rUpdating types... %s/%s' % (j,(len(codes) + len(self.tree) + len(self.subtrees))))
-        self.updateNodes(j, len(codes))
-        self.updateSubs(j + len(self.tree), len(codes))
+        self.updateNodes()
+        self.updateSubs()
         self.nsrc, self.nsnk, self.nudf = 0, 0, 0
         for i in self.leaves:
             if self.tree[i].isSource() == "Source": self.nsrc += 1
             elif self.tree[i].isSource() == "Sink": self.nsnk += 1
             else: self.nudf += 1
-        sys.stdout.write('\n')
 
 
-    def updateNodes(self, j, c):
+    def updateNodes(self):
 
         for layer in range(len(self.layers), 1, -1):
             for node in self.layers[layer]:
@@ -134,8 +129,6 @@ class Tree:
                     if self.tree[node].type[2] >= 1:    #elif
                         self.tree[parent].type[2] += 1
                     else: self.tree[parent].type[3] += 1
-                j += 1
-                sys.stdout.write('\rUpdating types... %s/%s' % (j,(c + len(self.tree) + len(self.subtrees))))
 
 
     def Newick(self, node, string = ''):
