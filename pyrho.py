@@ -3,8 +3,7 @@
 
 from plots import *
 from tree import *
-import ttk, tkFileDialog, tkSimpleDialog, tkMessageBox
-import FileDialog
+
 
 root = Tk()
 root.iconify()
@@ -160,8 +159,8 @@ f1S.tree.column('Type', width = 65)
 f2S.tree.column('Type', width = 65)
 
 nb.add(main, text = "Tree information")
-for a, b in zip((f1S,f2S,f1C,f2C),(u"ƒ1 statistics",u"ƒ2 statistics",\
-                        u"ƒ1 founder analysis",u"ƒ2 founder analysis")):
+for a, b in zip((f1S,f2S,f1C,f2C),(u"ƒ1 statistics", u"ƒ2 statistics",\
+                        u"ƒ1 founder analysis", u"ƒ2 founder analysis")):
     nb.add(a, text = b, state = 'disabled')
 
 
@@ -299,8 +298,7 @@ def calcMigs(alt = False):
     else:
         try:
             howmany = tkSimpleDialog.askinteger(parent = root, title = 'Migration dates', prompt = 'How many migrations?')
-            migrations = [tkSimpleDialog.askinteger(parent = root, title = 'Migration dates', prompt = 'Input date %s' % (i+1), initialvalue = '%s' % ((i+1) * 1000)) for i in range(howmany)]
-            ## ensure all migration dates are different (set?)
+            migrations = sorted(set([tkSimpleDialog.askinteger(parent = root, title = 'Migration dates', prompt = 'Input date %s' % (i+1), initialvalue = '%s' % ((i+1) * 1000)) for i in range(howmany)]))
         except: return
     mutationRate = tkSimpleDialog.askfloat(parent = root, title = 'Mutation rate', prompt = 'Input the mutation rate', initialvalue = '1000')
     probsF1 = n.migrationProbs(migrations,mutationRate, 1, alt)

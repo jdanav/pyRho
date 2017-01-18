@@ -3,6 +3,8 @@
 
 from tree import *
 from Tkinter import *
+import ttk, tkFileDialog, tkSimpleDialog, tkMessageBox
+import FileDialog
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
