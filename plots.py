@@ -16,7 +16,7 @@ matplotlib.rcParams['figure.facecolor'] = 'white'
 
 def rangeProb(master, title, xlabelticks, xlabel, ylabel, f1, f2):
 
-    ind = np.arange(len(xlabelticks))
+    ind = xrange(len(xlabelticks))
     fig, ax = plt.subplots()
 
     f1line = ax.plot(xlabelticks, f1.values()[-2], label = u'ƒ1', lw = 2, color = 'r')
@@ -37,7 +37,7 @@ def barProb(master, title, xlabelticks, xlabel, ylabel, f1, f2):
     f1Means, f1Devs = f1.values()[-2], f1.values()[-1]
     f2Means, f2Devs = f2.values()[-2], f2.values()[-1]
 
-    ind = np.arange(len(xlabelticks))
+    ind = xrange(len(xlabelticks))
     width = 0.25
     fig, ax = plt.subplots()
 

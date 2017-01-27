@@ -4,7 +4,6 @@
 from plots import *
 from tree import *
 
-
 root = Tk()
 root.iconify()
 root.deiconify()
@@ -294,6 +293,7 @@ def calcMigs(alt = False):
             _ = Tk()
             _.withdraw()
             migrations = rangeWindow(_,title = "Migration dates").range
+            _.destroy()
         except: return
     else:
         try:
@@ -333,6 +333,7 @@ def showRange():
         _ = Tk()
         _.withdraw()
         title, xlabel, ylabel = labelWindow(_,title = "Figure labels").labels
+        _.destroy()
     except: return
     plots = Tk()
     plots.withdraw()
@@ -463,3 +464,5 @@ menubar.entryconfig(2, state = "disabled")
 
 root.config(menu = menubar)
 root.mainloop()
+
+quit()

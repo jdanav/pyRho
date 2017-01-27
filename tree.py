@@ -3,7 +3,7 @@
 import re
 from collections import defaultdict as ddict, OrderedDict as odict
 from copy import copy
-import numpy as np
+from math import sqrt, exp, log
 
 class Node:
 
@@ -21,9 +21,10 @@ class Node:
     def isSource(self):
 
         t = self.type
-        if t == [0,0,1,0] and self.children == []: return "Sink"
-        elif (t == [1,0,0,0] or t == [0,1,0,0]) and self.children == []: return "Source"
-        elif (t == [0,0,0,1] or t == [0,0,0,0]) and self.children == []: return "Undefined"
+        if self.children == []:
+            return {'[0, 0, 1, 0]':'Sink',
+                    '[1, 0, 0, 0]':'Source','[0, 1, 0, 0]':'Source',
+                    '[0, 0, 0, 1]':'Undefined','[0, 0, 0, 0]':'Undefined'}[str(t)]
         else: return t
 
 
@@ -179,7 +180,7 @@ class Tree:
     def Age(self, node):
 
         rho = self.Rho(node, self.subtrees[node])
-        age = (np.exp(-np.exp(-0.0263 *(rho + 40.2789))) *rho *3624)
+        age = (exp(-exp(-0.0263 *(rho + 40.2789))) *rho *3624)
         return round(age, 3)
 
 
@@ -195,7 +196,7 @@ class Tree:
             if not f: lv = set(self.subtrees[nd].keys()) & set(self.leaves)
             else: lv = set(self.subtrees[nd].keys()) & set([i for i in self.leaves if self.tree[i].isSource() == 'Sink'])
             tSum += len(self.tree[nd].mutations) * len(lv) **2
-        se = np.sqrt(tSum/(len(leaves)**2))
+        se = sqrt(tSum/(len(leaves)**2))
         if not f: sub.values()[0].extra['SE'] = se
         return round(se, 3)
 
@@ -204,8 +205,8 @@ class Tree:
 
         rho = self.Rho(node, self.subtrees[node])
         se = self.StErr(self.subtrees[node])
-        lower = max(np.exp(-np.exp(-0.0263 * ((rho - (1.96 * se)) + 40.2789))) * (rho - (1.96 * se)) * 3624.0, 0)
-        upper = np.exp(-np.exp(-0.0263 * ((rho + (1.96 * se)) + 40.2789))) * (rho + (1.96 * se)) * 3624.0;
+        lower = max(exp(-exp(-0.0263 * ((rho - (1.96 * se)) + 40.2789))) * (rho - (1.96 * se)) * 3624.0, 0)
+        upper = exp(-exp(-0.0263 * ((rho + (1.96 * se)) + 40.2789))) * (rho + (1.96 * se)) * 3624.0;
         return round(lower, 3), round(upper, 3)
 
 
@@ -265,7 +266,7 @@ class Tree:
             if 'f%s' % f in node.extra:
                 fval = node.extra['f%s' % f]
                 N = fval[1]/(fval[2]**2) if effective and fval[1] > 0 else fval[0]
-                vals = [np.exp(- N * ((float(M)/mutationRate) - fval[1] * np.log(float(M)/mutationRate))) for M in migrations]
+                vals = [exp(- N * ((float(M)/mutationRate) - fval[1] * log(float(M)/mutationRate))) for M in migrations]
                 probs = [round(val/sum(vals),4) for val in vals]
                 probabilities[node.name] = probs
                 t_leaves += fval[0]
