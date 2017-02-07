@@ -42,12 +42,12 @@ def barProb(master, title, xlabelticks, xlabel, ylabel, f1, f2):
     fig, ax = plt.subplots()
 
     f1bars = ax.bar(ind, f1Means, width, color='r', ec = 'none', yerr = f1Devs, label = u'ƒ1', error_kw = dict(ecolor='black', lw=1, capsize=3, capthick=1))
-    f2bars = ax.bar(ind + width, f2Means, width, color='y', ec = 'none', yerr = f2Devs, label = u'ƒ2', error_kw = dict(ecolor='black', lw=1, capsize=3, capthick=1))
+    f2bars = ax.bar([i + width for i in ind], f2Means, width, color='y', ec = 'none', yerr = f2Devs, label = u'ƒ2', error_kw = dict(ecolor='black', lw=1, capsize=3, capthick=1))
 
     ax.set_ylabel(ylabel)
     ax.set_xlabel(xlabel)
     ax.set_title('%s\n' % title)
-    ax.set_xticks(ind + width)
+    ax.set_xticks([i + width for i in ind])
     ax.set_xticklabels((str(i) for i in xlabelticks))
 
     ax.legend(loc = 'best', frameon = False, handlelength = 0.7)

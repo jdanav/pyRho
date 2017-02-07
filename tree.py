@@ -122,9 +122,9 @@ class Tree:
                 elif node in self.leaves and self.tree[node].isSource() == "Undefined":
                     self.tree[parent].type[3] += 1
                 elif node in self.nodes:
-                    if self.tree[node].type[:2] > [0,0]:
-                        self.tree[parent].type[0] += 1
-                    if self.tree[node].type[2] >= 1:    #elif
+                    #if self.tree[node].type[:2] > [0,0]:
+                    self.tree[parent].type[0] += 1      #no if
+                    if self.tree[node].type[2] >= 1:
                         self.tree[parent].type[2] += 1
                     else: self.tree[parent].type[3] += 1
 
