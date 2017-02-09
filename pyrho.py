@@ -185,7 +185,7 @@ def openXML():
             elif node.name in n.nodes:
                 xnode = n.subtrees[node.name]
                 main.tree.insert(str(node.parent),'end', iid = node.name, text = node.name, tags = ('node'), values = (len(node.mutations), len(set(xnode.keys()) & set (n.leaves)), n.Rho(node.name, xnode), n.StErr(xnode), n.Age(node.name), n.ConfidenceInterval(node.name)), open = True)
-        for i in [1,4,5,6]: filemenu.entryconfig(i, state = "normal")
+        for i in [1,4,5,6,7]: filemenu.entryconfig(i, state = "normal")
         for i in [0,1]: optmenu.entryconfig(i, state = 'disabled')
         menubar.entryconfig(2, state = "normal")
         main.tree.focus_set()
@@ -223,6 +223,14 @@ def exportNewick():
     global n
     save = tkFileDialog.asksaveasfilename(parent = root, initialfile = "%s_newick.txt" % n.root.name)
     try: f = open(save, 'w'); f.write(n.Newick(None)); f.close()
+    except: pass
+
+
+def exportLeaves():
+
+    global n
+    save = tkFileDialog.asksaveasfilename(parent = root, initialfile = "%s_leaves.txt" % n.root.name)
+    try: f = open(save, 'w'); [f.write(i+'\n') for i in n.leaves]; f.close()
     except: pass
 
 
@@ -450,11 +458,13 @@ filemenu.add_command(label = "Generate random tree", command = genXML)
 filemenu.entryconfig(1, state = "disabled")
 filemenu.add_separator()
 filemenu.add_command(label = "Export tree (Newick format)", command = exportNewick)
+filemenu.add_command(label = "Export sample list (leaves)", command = exportLeaves)
 filemenu.add_command(label = "Save current table (TSV)", command = saveTable)
 filemenu.add_command(label = "Save all statistics (TSV)", command = saveAll)
 filemenu.entryconfig(4, state = "disabled")
 filemenu.entryconfig(5, state = "disabled")
 filemenu.entryconfig(6, state = "disabled")
+filemenu.entryconfig(7, state = "disabled")
 filemenu.add_separator()
 filemenu.add_command(label = "Quit", command = root.destroy)
 
