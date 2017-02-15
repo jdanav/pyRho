@@ -9,7 +9,7 @@ root.iconify()
 root.deiconify()
 
 root.title("0.7")
-root.iconbitmap(default = '.\\favicon.ico')
+#root.iconbitmap(default = '.\\favicon.ico')
 root.label = ttk.Label(root, text = 'Ready')
 root.label.pack(side = BOTTOM, anchor = 'w')
 root.geometry('850x490')
