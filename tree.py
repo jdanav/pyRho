@@ -94,7 +94,7 @@ class Tree:
             codes = f.readlines()
             f.close()
             for line in codes:
-                line = line.strip('\n').split('\t')
+                line = line.strip('\r\n').split('\t')
                 if line[0] in self.leaves:
                     leaf = self.tree[line[0]]
                     if line[1] in ["Sink", "sink", "SINK"]:
