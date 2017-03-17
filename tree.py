@@ -73,6 +73,10 @@ class Tree:
                         self.nodes.append(node.name)
                         self.subtrees[node.name] = odict(([node.name, node],))
                     else: self.leaves.append(node.name)
+                    if node.parent:
+                        parent = self.tree[node.parent]
+                        node.htmID = parent.htmID + '_%s' % parent.children.index(node.name)
+                    else: node.htmID = 'table1_0'
                     for x in layers.values()[1:l+1]:
                         if node.layer > self.tree[x].layer: self.subtrees[x][node.name] = copy(node)
             self.viable = 1
@@ -145,7 +149,35 @@ class Tree:
                 string = ',' + self.Newick(child, string)
             string = '(' + string[1:]
         return string
+   
 
+    def treeToHTML(self, page):
+
+        pagename = page + '.html'
+        infile = open(pagename,'r')
+        htm = infile.readlines(); infile.close()
+        out = open(pagename,'w')
+        if page == 'base':
+            head, tail = htm[:33], htm[-2:]
+            layer = [0 for i in self.layers]
+            out.write(''.join(head))
+            for node in self.tree.values():
+                tr = '<tr id="%s" class="%s">' % (node.htmID, 'node' if node.name in self.nodes else 'leaf')
+                td1 = '<td id="%s " onclick="treetable_toggleRow(\'%s\');">%s•&nbsp;%s</td>' % (node.name, node.htmID, '&nbsp;' *4 *(node.layer-1), node.name)
+                if node.name in self.nodes:
+                    xnode = self.subtrees[node.name]
+                    td2 = ['<td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td>' \
+                        % (len(node.mutations), len(set(xnode.keys()) & set (self.leaves)), \
+                        self.Rho(node.name, xnode), self.StErr(xnode), self.Age(node.name), self.ConfidenceInterval(node.name))]
+                else: td2 = ['<td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td>' % (len(node.mutations), '--','--','--','--','--')]
+                line = tr+td1+''.join(td2)+'</tr>\n'
+                out.write(line)
+        elif page == 'f1':
+            head, tail = htm[:32], htm[-2:]
+        elif page == 'f2':
+            head, tail = htm[:33], htm[-2:]
+        out.write(''.join(tail))
+        out.close()
 
     def Rho(self, root, sub, f = False):
 
@@ -230,7 +262,7 @@ class Tree:
         sub = copy(self.subtrees[node])
         for i in xrange(len(sub)-1, 0, -1):
             tp = sub.values()[i].type
-            if tp[0] > (N-1) or sub.values()[i].isSource() in ["Source", "Undefined"]: #or tp[1] > (N-1)
+            if tp[0] > (N-1) or sub.values()[i].isSource() in ["Source", "Undefined"]: ##or tp[1] > (N-1)
                 sub = self.removeNode(sub, sub.keys()[i])
         leaves = set(sub.keys()) & set(self.leaves)
         if len(leaves) == 0:
